@@ -1,0 +1,225 @@
+/* src/App.css */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #f5f5f5;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.loading-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 1rem;
+  color: #666;
+  background: #f5f5f5;
+}
+
+/* Estilos base para botones */
+button {
+  cursor: pointer;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #545b62;
+}
+
+/* Inputs */
+input, textarea, select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* Navbar Styles */
+.navbar {
+  background-color: #2d3436;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  gap: 1rem;
+}
+
+.navbar-container a:first-child {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #00cec9;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navbar-menu {
+  display: flex;
+  list-style: none;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.navbar-menu a {
+  color: #dfe6e9;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s ease-in-out;
+  padding: 0.5rem 0.75rem;
+  white-space: nowrap;
+}
+
+.navbar-menu a.active,
+.navbar-menu a:hover {
+  color: #00cec9;
+}
+
+.btn-logout {
+  background-color: #ff7675;
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.2s ease-in-out;
+  white-space: nowrap;
+}
+
+.btn-logout:hover {
+  background-color: #d63031;
+}
+
+/* ====================================
+   MEDIA QUERIES - RESPONSIVE DESIGN
+   ==================================== */
+
+/* Mobile First - Extra small devices (320px - 576px) */
+@media (max-width: 576px) {
+  .navbar-container {
+    padding: 0;
+  }
+
+  .navbar-menu {
+    gap: 0.25rem;
+  }
+
+  .navbar-menu a {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.5rem;
+  }
+
+  button {
+    padding: 0.6rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  input, textarea, select {
+    font-size: 16px; /* Previene zoom en iOS */
+    padding: 0.8rem;
+  }
+}
+
+/* Small devices (576px - 768px) */
+@media (min-width: 577px) and (max-width: 768px) {
+  .navbar-container {
+    gap: 0.75rem;
+  }
+
+  .navbar-menu a {
+    font-size: 0.85rem;
+  }
+}
+
+/* Tablets and up (768px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .navbar-container {
+    max-width: 1000px;
+  }
+
+  .navbar-menu {
+    gap: 1rem;
+  }
+}
+
+/* Large devices (1024px+) */
+@media (min-width: 1025px) {
+  .navbar-container {
+    max-width: 1400px;
+  }
+
+  .navbar-menu {
+    gap: 1.5rem;
+  }
+}

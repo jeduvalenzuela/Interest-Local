@@ -1,0 +1,253 @@
+/* src/pages/Dashboard.css */
+
+.dashboard {
+  display: flex;
+  min-height: 100vh;
+  gap: 0;
+}
+
+.sidebar {
+  width: 15.625rem;
+  background: #2c3e50;
+  color: white;
+  padding: 1.25rem;
+  overflow-y: auto;
+}
+
+.sidebar h2 {
+  margin-bottom: 1.25rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.interests-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.interests-list li {
+  padding: 0.75rem;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  background: #34495e;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  user-select: none;
+}
+
+.interests-list li:hover {
+  background: #415a77;
+  transform: translateX(4px);
+}
+
+.interests-list li:active {
+  transform: translateX(2px);
+}
+
+.interests-list .icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.main-content {
+  flex: 1;
+  padding: 1.5rem;
+  background: #f5f5f5;
+  overflow-y: auto;
+}
+
+.main-content h1 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.location-info {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #e8f5e9;
+  border-radius: 0.5rem;
+  border-left: 4px solid #4caf50;
+}
+
+.location-info p {
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+  color: #2e7d32;
+  font-size: 0.95rem;
+}
+
+.location-info small {
+  color: #558b2f;
+  font-size: 0.85rem;
+  display: block;
+}
+
+.btn-secondary {
+  margin-top: 1.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #2c3e50;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #34495e;
+  transform: translateY(-2px);
+}
+
+/* ====================================
+   MEDIA QUERIES - RESPONSIVE DESIGN
+   ==================================== */
+
+/* Tablets (768px - 1024px) */
+@media (max-width: 1024px) {
+  .dashboard {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    max-height: 180px;
+    border-bottom: 1px solid #34495e;
+    padding: 1rem;
+  }
+
+  .interests-list {
+    flex-direction: row;
+    overflow-x: auto;
+    flex-wrap: wrap;
+  }
+
+  .interests-list li {
+    flex-shrink: 0;
+    min-width: 120px;
+  }
+
+  .main-content {
+    padding: 1rem;
+  }
+}
+
+/* Mobile (576px - 767px) */
+@media (max-width: 767px) {
+  .sidebar {
+    max-height: 150px;
+    padding: 0.75rem;
+  }
+
+  .sidebar h2 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .interests-list li {
+    padding: 0.65rem;
+    font-size: 0.85rem;
+  }
+
+  .interests-list .icon {
+    font-size: 1rem;
+  }
+
+  .main-content {
+    padding: 0.75rem;
+  }
+
+  .main-content h1 {
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .location-info {
+    margin-top: 1rem;
+    padding: 0.75rem;
+  }
+
+  .location-info p {
+    font-size: 0.9rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .location-info small {
+    font-size: 0.8rem;
+  }
+
+  .btn-secondary {
+    margin-top: 1rem;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Extra small devices (320px - 575px) */
+@media (max-width: 575px) {
+  .dashboard {
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    max-height: 140px;
+    padding: 0.5rem;
+  }
+
+  .sidebar h2 {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .interests-list {
+    gap: 0.35rem;
+  }
+
+  .interests-list li {
+    padding: 0.5rem 0.65rem;
+    font-size: 0.8rem;
+    min-width: 100px;
+  }
+
+  .interests-list .icon {
+    font-size: 0.9rem;
+  }
+
+  .main-content {
+    padding: 0.65rem;
+  }
+
+  .main-content h1 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .location-info {
+    margin-top: 0.75rem;
+    padding: 0.65rem;
+    border-left-width: 3px;
+  }
+
+  .location-info p {
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .location-info small {
+    font-size: 0.75rem;
+  }
+
+  .btn-secondary {
+    margin-top: 0.75rem;
+    padding: 0.6rem 0.65rem;
+    font-size: 0.85rem;
+  }
+}

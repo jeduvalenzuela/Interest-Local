@@ -1,0 +1,362 @@
+.onboarding {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1.25rem;
+}
+
+.onboarding-card {
+  background: white;
+  border-radius: 1.25rem;
+  padding: 2.5rem;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.onboarding-card h2 {
+  font-size: 1.75rem;
+  color: #333;
+  margin: 0 0 0.625rem 0;
+  text-align: center;
+}
+
+.subtitle {
+  text-align: center;
+  color: #666;
+  margin: 0 0 1.875rem 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.form-section {
+  margin-bottom: 1.875rem;
+}
+
+.form-section label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #333;
+  font-size: 0.9375rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-section input {
+  width: 100%;
+  padding: 0.75rem 0.9375rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  background: white;
+}
+
+.form-section input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-section textarea {
+  width: 100%;
+  padding: 0.75rem 0.9375rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-section textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.interests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.625rem;
+}
+
+.interest-tag {
+  padding: 0.625rem 0.9375rem;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: 1.25rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #666;
+  text-align: center;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.interest-tag:hover {
+  border-color: #667eea;
+  transform: translateY(-2px);
+  background: #f5f5ff;
+}
+
+.interest-tag:active {
+  transform: translateY(0);
+}
+
+.interest-tag.selected {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  color: white;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin-top: 1.875rem;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5568d3 0%, #6a3b8a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btn-skip {
+  width: 100%;
+  padding: 0.75rem;
+  background: transparent;
+  color: #999;
+  border: none;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-skip:hover {
+  color: #667eea;
+}
+
+/* ====================================
+   MEDIA QUERIES - RESPONSIVE DESIGN
+   ==================================== */
+
+/* Tablets (768px - 1024px) */
+@media (max-width: 1024px) {
+  .onboarding {
+    padding: 1rem;
+  }
+
+  .onboarding-card {
+    padding: 2rem;
+    border-radius: 1rem;
+  }
+
+  .onboarding-card h2 {
+    font-size: 1.5rem;
+  }
+
+  .interests-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .interest-tag {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Mobile (576px - 767px) */
+@media (max-width: 767px) {
+  .onboarding {
+    padding: 1rem;
+  }
+
+  .onboarding-card {
+    padding: 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+
+  .onboarding-card h2 {
+    font-size: 1.35rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-section label {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-section input,
+  .form-section textarea {
+    padding: 0.7rem 0.75rem;
+    font-size: 1rem;
+  }
+
+  .form-section textarea {
+    min-height: 80px;
+  }
+
+  .interests-grid {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 0.4rem;
+  }
+
+  .interest-tag {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.75rem;
+    border-radius: 1rem;
+  }
+
+  .actions {
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .btn-primary {
+    padding: 0.8rem;
+    font-size: 0.95rem;
+  }
+
+  .btn-skip {
+    padding: 0.65rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Extra small devices (320px - 575px) */
+@media (max-width: 575px) {
+  .onboarding {
+    padding: 0.75rem;
+    min-height: 100vh;
+  }
+
+  .onboarding-card {
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    max-height: 95vh;
+  }
+
+  .onboarding-card h2 {
+    font-size: 1.15rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .subtitle {
+    font-size: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .form-section {
+    margin-bottom: 1.25rem;
+  }
+
+  .form-section label {
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .form-section input,
+  .form-section textarea {
+    padding: 0.65rem 0.5rem;
+    font-size: 16px; /* Previene zoom en iOS */
+    border-radius: 0.5rem;
+  }
+
+  .form-section textarea {
+    min-height: 70px;
+  }
+
+  .interests-grid {
+    grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+    gap: 0.35rem;
+  }
+
+  .interest-tag {
+    padding: 0.5rem 0.5rem;
+    font-size: 0.7rem;
+    border-radius: 1rem;
+  }
+
+  .interest-tag:hover {
+    transform: translateY(-1px);
+  }
+
+  .actions {
+    gap: 0.4rem;
+    margin-top: 1.25rem;
+  }
+
+  .btn-primary {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    border-radius: 0.5rem;
+  }
+
+  .btn-skip {
+    padding: 0.6rem;
+    font-size: 0.75rem;
+  }
+}
