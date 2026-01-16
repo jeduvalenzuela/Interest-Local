@@ -42,17 +42,24 @@ export default function ForumView() {
           messages.map((msg) => (
             <div key={msg.id} style={{ padding: '1rem', marginBottom: '1rem', background: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <strong>{msg.author_name}</strong>
-                <span style={{ color: '#666', fontSize: '0.9rem' }}>{msg.distance_km.toFixed(1)} km</span>
+                <strong>{msg.author_name || 'Usuario'}</strong>
+                <span style={{ color: '#666', fontSize: '0.9rem' }}>
+                  {typeof msg.distance_km === 'number' ? msg.distance_km.toFixed(1) + ' km' : '—'}
+                </span>
               </div>
               <p>{msg.content}</p>
-              <small style={{ color: '#999' }}>{new Date(msg.created_at).toLocaleString()}</small>
+              <small style={{ color: '#999' }}>{msg.created_at ? new Date(msg.created_at).toLocaleString() : ''}</small>
             </div>
           ))
         ) : (
           <p>No hay mensajes cerca. ¡Sé el primero!</p>
         )}
       </div>
+      {postMessage.isError && (
+        <div style={{ color: 'red', marginBottom: '1rem' }}>
+          Error al publicar: {postMessage.error?.message || 'Intenta nuevamente.'}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <textarea

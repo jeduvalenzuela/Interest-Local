@@ -9,32 +9,6 @@
 // Prevent direct access
 if (!defined('ABSPATH')) exit;
 
-/**
- * Register Custom Post Type: Interest
- */
-add_action('init', function() {
-    register_post_type('interest', [
-        'labels' => [
-            'name' => 'Interests',
-            'singular_name' => 'Interest',
-            'add_new' => 'Add New',
-            'add_new_item' => 'Add New Interest',
-            'edit_item' => 'Edit Interest',
-            'new_item' => 'New Interest',
-            'view_item' => 'View Interest',
-            'search_items' => 'Search Interests',
-            'not_found' => 'No interests found',
-            'not_found_in_trash' => 'No interests found in Trash',
-        ],
-        'public' => true,
-        'has_archive' => false,
-        'menu_icon' => 'dashicons-groups',
-        'supports' => ['title', 'editor', 'custom-fields'],
-        'show_in_rest' => true,
-        'capability_type' => 'post',
-        'menu_position' => 5,
-    ]);
-});
 
 
 /**
@@ -160,6 +134,61 @@ add_action('admin_menu', function() {
         'dashicons-category',
         7
     );
+
+    // Interest Forums (tabla custom)
+    add_menu_page(
+        'Interest Forums',
+        'Interest Forums',
+        'manage_options',
+        'interest-forums',
+        function() use ($wpdb) {
+            $forums_table = $wpdb->prefix . 'interests';
+            // Editar foro
+            if (isset($_POST['update_forum'])) {
+                $id = intval($_POST['forum_id']);
+                $name = sanitize_text_field($_POST['forum_name']);
+                $icon = sanitize_text_field($_POST['forum_icon']);
+                $color = sanitize_text_field($_POST['forum_color']);
+                $category = sanitize_text_field($_POST['forum_category']);
+                $wpdb->update($forums_table, [
+                    'name' => $name,
+                    'icon' => $icon,
+                    'color' => $color,
+                    'category' => $category
+                ], [ 'id' => $id ]);
+                echo '<div class="updated"><p>Forum updated!</p></div>';
+            }
+            // Eliminar foro
+            if (isset($_POST['delete_forum'])) {
+                $id = intval($_POST['forum_id']);
+                $wpdb->delete($forums_table, [ 'id' => $id ]);
+                echo '<div class="updated"><p>Forum deleted!</p></div>';
+            }
+            // Listar foros
+            $forums = $wpdb->get_results("SELECT * FROM $forums_table ORDER BY created_at DESC LIMIT 100");
+            echo '<div class="wrap"><h1>Interest Forums</h1>';
+            echo '<table class="widefat"><thead><tr><th>ID</th><th>Name</th><th>Icon</th><th>Color</th><th>Category</th><th>Actions</th></tr></thead><tbody>';
+            foreach ($forums as $forum) {
+                echo '<tr>';
+                echo '<td>' . esc_html($forum->id) . '</td>';
+                echo '<td>';
+                echo '<form method="post" style="display:inline-block;">';
+                echo '<input type="hidden" name="forum_id" value="' . esc_attr($forum->id) . '" />';
+                echo '<input type="text" name="forum_name" value="' . esc_attr($forum->name) . '" style="width:120px;" /> ';
+                echo '<input type="text" name="forum_icon" value="' . esc_attr($forum->icon) . '" style="width:40px;" maxlength="2" /> ';
+                echo '<input type="color" name="forum_color" value="' . esc_attr($forum->color) . '" style="width:40px;" /> ';
+                echo '<input type="text" name="forum_category" value="' . esc_attr($forum->category) . '" style="width:100px;" /> ';
+                echo '<button type="submit" name="update_forum">Update</button> ';
+                echo '<button type="submit" name="delete_forum" onclick="return confirm(\'Delete this forum?\')">Delete</button>';
+                echo '</form>';
+                echo '</td>';
+                echo '</tr>';
+            }
+            echo '</tbody></table></div>';
+        },
+        'dashicons-groups',
+        8
+    );
 });
 
 
@@ -168,7 +197,7 @@ add_action('admin_menu', function() {
  * Theme Constants
  * ============================
  */
-define('GEOINTEREST_VERSION', '1.0.10');
+define('GEOINTEREST_VERSION', '1.0.13');
 define('GEOINTEREST_INC', get_template_directory() . '/inc/');
 
 /**

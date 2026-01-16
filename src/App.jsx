@@ -7,6 +7,7 @@ import MainMap from './components/Map/MainMap';
 import Onboarding from './components/Onboarding/Onboarding';
 import ProtectedRoute from './components/ProtectedRoute';
 import NewDashboard from './pages/NewDashboard';
+import ForumView from './pages/ForumView';
 
 function App() {
   // ✅ OBTENER BASENAME DE FORMA DINÁMICA
@@ -81,6 +82,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainMap />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Foro local por interés */}
+          <Route 
+            path="/forum/:interestId" 
+            element={
+              <ProtectedRoute>
+                <ForumView />
               </ProtectedRoute>
             } 
           />

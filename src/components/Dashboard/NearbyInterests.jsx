@@ -41,7 +41,7 @@ export default function NearbyInterests() {
   const userCreated = nearbyInterests.filter(i => i.creator_id === user?.id);
   // Foros categorizados con intereses de onboarding Y con participantes a menos de 1km
   const userCategories = Array.isArray(user?.interests) ? user.interests : [];
-  const categorizedWithMembers = nearbyInterests.filter(i => userCategories.includes(i.category) && i.member_count > 0);
+  const categorizedWithMembers = nearbyInterests.filter(i => userCategories.includes(i.category));
 
   // If we don't have location, request it
   useEffect(() => {
@@ -137,7 +137,7 @@ export default function NearbyInterests() {
 
         {/* Foros categorizados con intereses de onboarding Y con participantes a menos de 1km */}
         {categorizedWithMembers.length > 0 && <>
-          <h3>Forums in Your Categories (with nearby members)</h3>
+          <h3>Forums in Your Categories (within 1km)</h3>
           {categorizedWithMembers.map((interest) => (
             <div
               key={interest.id}
