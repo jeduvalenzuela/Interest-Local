@@ -82,6 +82,16 @@ function geointerest_register_endpoints() {
         'permission_callback' => '__return_true'
     ]);
 
+        // Endpoint para crear intereses (solo usuarios autenticados, idealmente admin)
+        register_rest_route($namespace, '/interests', [
+            'methods' => 'POST',
+            'callback' => 'geointerest_create_interest',
+            'permission_callback' => function() {
+                // Solo permitir a usuarios autenticados (puedes cambiar a is_admin si quieres solo admin)
+                return GeoInterest_JWT::get_current_user_id() !== false;
+            }
+        ]);
+
     // Nearby interests endpoint (1km radius) - NUEVO
     register_rest_route($namespace, '/interests/nearby', [
         'methods' => 'GET',
@@ -159,6 +169,68 @@ function geointerest_register_endpoints() {
 }
 
 // === AUTH ENDPOINTS ===
+
+// === CREAR INTERÉS DESDE FRONTEND ===
+function geointerest_create_interest($request) {
+    global $wpdb;
+    $user_id = GeoInterest_JWT::get_current_user_id();
+    if (!$user_id) {
+        return new WP_Error('auth_error', 'No autorizado', ['status' => 401]);
+    }
+
+    $name = sanitize_text_field($request->get_param('name'));
+    $icon = sanitize_text_field($request->get_param('icon'));
+    $color = sanitize_text_field($request->get_param('color'));
+
+    if (empty($name)) {
+        return new WP_Error('missing_name', 'El nombre del interés es obligatorio', ['status' => 400]);
+    }
+
+    // Evitar duplicados por nombre
+    $exists = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}interests WHERE name = %s", $name));
+    if ($exists) {
+        return new WP_Error('duplicate_interest', 'Ya existe un interés con ese nombre', ['status' => 409]);
+    }
+
+    // Generar slug único
+    $slug = sanitize_title($name);
+    $slug_base = $slug;
+    $i = 1;
+    while ($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}interests WHERE slug = %s", $slug))) {
+        $slug = $slug_base . '-' . $i;
+        $i++;
+    }
+
+    $result = $wpdb->insert(
+        $wpdb->prefix . 'interests',
+        [
+            'name' => $name,
+            'slug' => $slug,
+            'icon' => $icon ?: '⭐',
+            'color' => $color ?: '#888',
+            'created_at' => current_time('mysql', 1)
+        ],
+        [
+            '%s', '%s', '%s', '%s', '%s'
+        ]
+    );
+
+    if ($result) {
+        $id = $wpdb->insert_id;
+        return [
+            'success' => true,
+            'interest' => [
+                'id' => $id,
+                'name' => $name,
+                'slug' => $slug,
+                'icon' => $icon ?: '⭐',
+                'color' => $color ?: '#888'
+            ]
+        ];
+    } else {
+        return new WP_Error('db_error', 'No se pudo crear el interés', ['status' => 500]);
+    }
+}
 
 function geointerest_register_user($request) {
     $email = sanitize_email($request->get_param('email'));

@@ -1,3 +1,4 @@
+
 <?php
 /**
  * Theme Name: Interest Local
@@ -5,15 +6,108 @@
  * Version: 1.0.0
  */
 
+
 // Prevent direct access
 if (!defined('ABSPATH')) exit;
+
+/**
+ * Register Custom Post Type: Interest
+ */
+add_action('init', function() {
+    register_post_type('interest', [
+        'labels' => [
+            'name' => 'Interests',
+            'singular_name' => 'Interest',
+            'add_new' => 'Add New',
+            'add_new_item' => 'Add New Interest',
+            'edit_item' => 'Edit Interest',
+            'new_item' => 'New Interest',
+            'view_item' => 'View Interest',
+            'search_items' => 'Search Interests',
+            'not_found' => 'No interests found',
+            'not_found_in_trash' => 'No interests found in Trash',
+        ],
+        'public' => true,
+        'has_archive' => false,
+        'menu_icon' => 'dashicons-groups',
+        'supports' => ['title', 'editor', 'custom-fields'],
+        'show_in_rest' => true,
+        'capability_type' => 'post',
+        'menu_position' => 5,
+    ]);
+});
+
+
+/**
+ * Create custom table for forum messages on theme activation
+ */
+register_activation_hook(__FILE__, function() {
+    global $wpdb;
+    $table = $wpdb->prefix . 'forum_messages';
+    $charset_collate = $wpdb->get_charset_collate();
+    $sql = "CREATE TABLE IF NOT EXISTS $table (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        interest_id BIGINT UNSIGNED NOT NULL,
+        author_id BIGINT UNSIGNED NOT NULL,
+        author_name VARCHAR(100) NOT NULL,
+        author_avatar VARCHAR(255) DEFAULT '',
+        content TEXT NOT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        status VARCHAR(20) NOT NULL DEFAULT 'approved',
+        report_count INT UNSIGNED NOT NULL DEFAULT 0,
+        PRIMARY KEY (id)
+    ) $charset_collate;";
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($sql);
+});
+
+/**
+ * Add admin menu for moderating forum messages
+ */
+add_action('admin_menu', function() {
+    add_menu_page(
+        'Forum Messages',
+        'Forum Messages',
+        'manage_options',
+        'forum-messages',
+        function() {
+            global $wpdb;
+            $table = $wpdb->prefix . 'forum_messages';
+            $messages = $wpdb->get_results("SELECT * FROM $table ORDER BY created_at DESC LIMIT 100");
+            echo '<div class="wrap"><h1>Forum Messages</h1>';
+            echo '<table class="widefat"><thead><tr><th>ID</th><th>Interest</th><th>Author</th><th>Content</th><th>Date</th><th>Status</th><th>Reports</th><th>Actions</th></tr></thead><tbody>';
+            foreach ($messages as $msg) {
+                echo '<tr>';
+                echo '<td>' . esc_html($msg->id) . '</td>';
+                echo '<td>' . esc_html($msg->interest_id) . '</td>';
+                echo '<td>' . esc_html($msg->author_name) . '</td>';
+                echo '<td>' . esc_html($msg->content) . '</td>';
+                echo '<td>' . esc_html($msg->created_at) . '</td>';
+                echo '<td>' . esc_html($msg->status) . '</td>';
+                echo '<td>' . esc_html($msg->report_count) . '</td>';
+                echo '<td><a href="?page=forum-messages&delete=' . esc_attr($msg->id) . '" onclick="return confirm(\'Delete this message?\')">Delete</a></td>';
+                echo '</tr>';
+            }
+            echo '</tbody></table></div>';
+            // Handle deletion
+            if (isset($_GET['delete'])) {
+                $del_id = intval($_GET['delete']);
+                $wpdb->delete($table, ['id' => $del_id]);
+                echo '<script>location.href="?page=forum-messages";</script>';
+            }
+        },
+        'dashicons-admin-comments',
+        6
+    );
+});
+
 
 /**
  * ============================
  * Theme Constants
  * ============================
  */
-define('GEOINTEREST_VERSION', '1.0.0');
+define('GEOINTEREST_VERSION', '1.0.1');
 define('GEOINTEREST_INC', get_template_directory() . '/inc/');
 
 /**

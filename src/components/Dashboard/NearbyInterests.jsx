@@ -6,8 +6,8 @@ import { useUserLocation } from '../../hooks/useUserLocation';
 import './NearbyInterests.css';
 
 /**
- * Componente para mostrar intereses cercanos con número de miembros
- * Radio fijo: 1km (1000 metros)
+ * Component to display nearby interests with member count
+ * Fixed radius: 1km (1000 meters)
  */
 export default function NearbyInterests() {
   const navigate = useNavigate();
@@ -22,10 +22,10 @@ export default function NearbyInterests() {
           .get('/interests/nearby', {
             latitude: location.latitude,
             longitude: location.longitude,
-            radius: 1000, // 1km fijo
+            radius: 1000, // 1km fixed
           })
           .then((res) => {
-            // Asegurar que sea un array y ordenar por miembros (descendente)
+            // Ensure it's an array and sort by member count (descending)
             const interests = Array.isArray(res) ? res : res.interests || [];
             return interests.sort((a, b) => (b.member_count || 0) - (a.member_count || 0));
           });
@@ -33,10 +33,10 @@ export default function NearbyInterests() {
       return [];
     },
     enabled: !!location,
-    refetchInterval: 30000, // Actualizar cada 30 segundos
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  // Si no tenemos ubicación, pedirla
+  // If we don't have location, request it
   useEffect(() => {
     if (!location && !locationLoading && locationError) {
       console.warn('Location error:', locationError);
@@ -47,7 +47,7 @@ export default function NearbyInterests() {
     return (
       <div className="nearby-interests loading">
         <div className="spinner">⏳</div>
-        <p>Obteniendo tu ubicación...</p>
+        <p>Getting your location...</p>
       </div>
     );
   }
@@ -56,7 +56,7 @@ export default function NearbyInterests() {
     return (
       <div className="nearby-interests error">
         <div className="error-icon">📍</div>
-        <p>No pudimos obtener tu ubicación. Intenta de nuevo.</p>
+        <p>Could not get your location. Please try again.</p>
       </div>
     );
   }
@@ -65,7 +65,7 @@ export default function NearbyInterests() {
     return (
       <div className="nearby-interests loading">
         <div className="spinner">⏳</div>
-        <p>Buscando intereses cercanos...</p>
+        <p>Searching for nearby interests...</p>
       </div>
     );
   }
@@ -73,9 +73,9 @@ export default function NearbyInterests() {
   if (error) {
     return (
       <div className="nearby-interests error">
-        <p>Error al cargar intereses: {error.message}</p>
+        <p>Error loading interests: {error.message}</p>
         <button onClick={() => refetch()} className="btn-retry">
-          Reintentar
+          Retry
         </button>
       </div>
     );
@@ -85,8 +85,8 @@ export default function NearbyInterests() {
     return (
       <div className="nearby-interests empty">
         <div className="empty-icon">🔍</div>
-        <p>No hay intereses cercanos en un radio de 1km</p>
-        <small>Intenta moverte a otra ubicación o selecciona intereses en tu perfil</small>
+        <p>No nearby interests within 1km</p>
+        <small>Try moving to another location or select interests in your profile</small>
       </div>
     );
   }
@@ -94,12 +94,12 @@ export default function NearbyInterests() {
   return (
     <div className="nearby-interests">
       <div className="interests-header">
-        <h2>Intereses Cercanos (1km)</h2>
+        <h2>Nearby Interests (1km)</h2>
         <span className="count">{nearbyInterests.length}</span>
       </div>
 
       <div className="interests-list">
-        {nearbyInterests.map((interest) => (
+        {nearbyInterests.filter((interest) => interest.member_count > 0).map((interest) => (
           <div
             key={interest.id}
             className="interest-card"
@@ -117,7 +117,7 @@ export default function NearbyInterests() {
             <div className="interest-members">
               <span className="member-count">{interest.member_count || 0}</span>
               <span className="member-label">
-                {interest.member_count === 1 ? 'miembro' : 'miembros'}
+                {interest.member_count === 1 ? 'member' : 'members'}
               </span>
             </div>
           </div>
@@ -126,7 +126,7 @@ export default function NearbyInterests() {
 
       <div className="location-info">
         <small>
-          📍 Ubicación: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
+          📍 Location: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
         </small>
       </div>
     </div>
