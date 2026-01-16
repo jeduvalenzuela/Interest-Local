@@ -1,4 +1,3 @@
-
 <?php
 /**
  * Theme Name: Interest Local
@@ -61,17 +60,19 @@ register_activation_hook(__FILE__, function() {
     dbDelta($sql);
 });
 
+
 /**
- * Add admin menu for moderating forum messages
+ * Add admin menu for moderating forum messages and managing interest categories
  */
 add_action('admin_menu', function() {
+    global $wpdb;
+    // Forum Messages
     add_menu_page(
         'Forum Messages',
         'Forum Messages',
         'manage_options',
         'forum-messages',
-        function() {
-            global $wpdb;
+        function() use ($wpdb) {
             $table = $wpdb->prefix . 'forum_messages';
             $messages = $wpdb->get_results("SELECT * FROM $table ORDER BY created_at DESC LIMIT 100");
             echo '<div class="wrap"><h1>Forum Messages</h1>';
@@ -99,6 +100,66 @@ add_action('admin_menu', function() {
         'dashicons-admin-comments',
         6
     );
+
+    // Interest Categories (nueva tabla)
+    add_menu_page(
+        'Interest Categories',
+        'Interest Categories',
+        'manage_options',
+        'interest-categories',
+        function() use ($wpdb) {
+            $cat_table = $wpdb->prefix . 'interest_categories';
+            // Crear nueva categoría
+            if (isset($_POST['new_category'])) {
+                $new_cat = sanitize_text_field($_POST['new_category_name']);
+                $slug = sanitize_title($new_cat);
+                $exists = $wpdb->get_var($wpdb->prepare("SELECT id FROM $cat_table WHERE slug = %s", $slug));
+                if (!$exists) {
+                    $wpdb->insert($cat_table, [
+                        'name' => $new_cat,
+                        'slug' => $slug,
+                        'created_at' => current_time('mysql', 1)
+                    ]);
+                    echo '<div class="updated"><p>Category created!</p></div>';
+                } else {
+                    echo '<div class="error"><p>Category already exists!</p></div>';
+                }
+            }
+            // Editar nombre de categoría
+            if (isset($_POST['update_category'])) {
+                $id = intval($_POST['category_id']);
+                $name = sanitize_text_field($_POST['category_name']);
+                $slug = sanitize_title($name);
+                $wpdb->update($cat_table, [ 'name' => $name, 'slug' => $slug ], [ 'id' => $id ]);
+                echo '<div class="updated"><p>Category updated!</p></div>';
+            }
+            // Listar categorías
+            $categories = $wpdb->get_results("SELECT * FROM $cat_table ORDER BY name ASC");
+            echo '<div class="wrap"><h1>Interest Categories</h1>';
+            echo '<form method="post"><h2>Create New Category</h2>';
+            echo '<input type="text" name="new_category_name" placeholder="Category name" required />';
+            echo '<button type="submit" name="new_category">Create Category</button></form>';
+            echo '<h2>Edit Categories</h2>';
+            echo '<table class="widefat"><thead><tr><th>ID</th><th>Name</th><th>Slug</th><th>Edit</th></tr></thead><tbody>';
+            foreach ($categories as $cat) {
+                echo '<tr>';
+                echo '<td>' . esc_html($cat->id) . '</td>';
+                echo '<td>' . esc_html($cat->name) . '</td>';
+                echo '<td>' . esc_html($cat->slug) . '</td>';
+                echo '<td>';
+                echo '<form method="post" style="display:inline-block;">';
+                echo '<input type="hidden" name="category_id" value="' . esc_attr($cat->id) . '" />';
+                echo '<input type="text" name="category_name" value="' . esc_attr($cat->name) . '" />';
+                echo '<button type="submit" name="update_category">Update</button>';
+                echo '</form>';
+                echo '</td>';
+                echo '</tr>';
+            }
+            echo '</tbody></table></div>';
+        },
+        'dashicons-category',
+        7
+    );
 });
 
 
@@ -107,7 +168,7 @@ add_action('admin_menu', function() {
  * Theme Constants
  * ============================
  */
-define('GEOINTEREST_VERSION', '1.0.1');
+define('GEOINTEREST_VERSION', '1.0.10');
 define('GEOINTEREST_INC', get_template_directory() . '/inc/');
 
 /**

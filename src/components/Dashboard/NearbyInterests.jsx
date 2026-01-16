@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../utils/api';
 import { useUserLocation } from '../../hooks/useUserLocation';
+import { useAuth } from '../../context/AuthContext';
 import './NearbyInterests.css';
 
 /**
@@ -12,6 +13,7 @@ import './NearbyInterests.css';
 export default function NearbyInterests() {
   const navigate = useNavigate();
   const { location, loading: locationLoading, error: locationError } = useUserLocation();
+  const { user } = useAuth();
 
   // Load nearby interests
   const { data: nearbyInterests = [], isLoading, error, refetch } = useQuery({
@@ -25,7 +27,6 @@ export default function NearbyInterests() {
             radius: 1000, // 1km fixed
           })
           .then((res) => {
-            // Ensure it's an array and sort by member count (descending)
             const interests = Array.isArray(res) ? res : res.interests || [];
             return interests.sort((a, b) => (b.member_count || 0) - (a.member_count || 0));
           });
@@ -33,8 +34,14 @@ export default function NearbyInterests() {
       return [];
     },
     enabled: !!location,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 30000,
   });
+
+  // Foros creados por el usuario
+  const userCreated = nearbyInterests.filter(i => i.creator_id === user?.id);
+  // Foros categorizados con intereses de onboarding Y con participantes a menos de 1km
+  const userCategories = Array.isArray(user?.interests) ? user.interests : [];
+  const categorizedWithMembers = nearbyInterests.filter(i => userCategories.includes(i.category) && i.member_count > 0);
 
   // If we don't have location, request it
   useEffect(() => {
@@ -99,29 +106,63 @@ export default function NearbyInterests() {
       </div>
 
       <div className="interests-list">
-        {nearbyInterests.filter((interest) => interest.member_count > 0).map((interest) => (
-          <div
-            key={interest.id}
-            className="interest-card"
-            onClick={() => navigate(`/forum/${interest.id}`)}
-          >
-            <div className="interest-content">
-              <div className="interest-icon">{interest.icon || '⭐'}</div>
-              <div className="interest-info">
-                <h3 className="interest-name">{interest.name}</h3>
-                <p className="interest-distance">
-                  📍 {interest.distance ? `${(interest.distance / 1000).toFixed(2)}km` : '<1km'}
-                </p>
+        {/* Foros creados por el usuario */}
+        {userCreated.length > 0 && <>
+          <h3>Your Forums</h3>
+          {userCreated.map((interest) => (
+            <div
+              key={interest.id}
+              className="interest-card"
+              onClick={() => navigate(`/forum/${interest.id}`)}
+            >
+              <div className="interest-content">
+                <div className="interest-icon">{interest.icon || '⭐'}</div>
+                <div className="interest-info">
+                  <h3 className="interest-name">{interest.name}</h3>
+                  <p className="interest-distance">
+                    📍 {interest.distance ? `${(interest.distance / 1000).toFixed(2)}km` : '<1km'}
+                  </p>
+                  <span className="category-label">Category: {interest.category}</span>
+                </div>
+              </div>
+              <div className="interest-members">
+                <span className="member-count">{interest.member_count || 0}</span>
+                <span className="member-label">
+                  {interest.member_count === 1 ? 'member' : 'members'}
+                </span>
               </div>
             </div>
-            <div className="interest-members">
-              <span className="member-count">{interest.member_count || 0}</span>
-              <span className="member-label">
-                {interest.member_count === 1 ? 'member' : 'members'}
-              </span>
+          ))}
+        </>}
+
+        {/* Foros categorizados con intereses de onboarding Y con participantes a menos de 1km */}
+        {categorizedWithMembers.length > 0 && <>
+          <h3>Forums in Your Categories (with nearby members)</h3>
+          {categorizedWithMembers.map((interest) => (
+            <div
+              key={interest.id}
+              className="interest-card"
+              onClick={() => navigate(`/forum/${interest.id}`)}
+            >
+              <div className="interest-content">
+                <div className="interest-icon">{interest.icon || '⭐'}</div>
+                <div className="interest-info">
+                  <h3 className="interest-name">{interest.name}</h3>
+                  <p className="interest-distance">
+                    📍 {interest.distance ? `${(interest.distance / 1000).toFixed(2)}km` : '<1km'}
+                  </p>
+                  <span className="category-label">Category: {interest.category}</span>
+                </div>
+              </div>
+              <div className="interest-members">
+                <span className="member-count">{interest.member_count || 0}</span>
+                <span className="member-label">
+                  {interest.member_count === 1 ? 'member' : 'members'}
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </>}
       </div>
 
       <div className="location-info">

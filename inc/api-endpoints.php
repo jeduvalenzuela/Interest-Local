@@ -1,3 +1,22 @@
+// === ENDPOINT: Listar categorías de intereses ===
+add_action('rest_api_init', function() {
+    register_rest_route('geointerest/v1', '/interest-categories', [
+        'methods' => 'GET',
+        'callback' => function() {
+            global $wpdb;
+            $table = $wpdb->prefix . 'interest_categories';
+            $results = $wpdb->get_results("SELECT * FROM $table ORDER BY name ASC");
+            return array_map(function($row) {
+                return [
+                    'id' => intval($row->id),
+                    'name' => $row->name,
+                    'slug' => $row->slug
+                ];
+            }, $results);
+        },
+        'permission_callback' => '__return_true',
+    ]);
+});
 <?php
 if (!defined('ABSPATH')) exit;
 
@@ -181,6 +200,7 @@ function geointerest_create_interest($request) {
     $name = sanitize_text_field($request->get_param('name'));
     $icon = sanitize_text_field($request->get_param('icon'));
     $color = sanitize_text_field($request->get_param('color'));
+    $category = sanitize_text_field($request->get_param('category'));
 
     if (empty($name)) {
         return new WP_Error('missing_name', 'El nombre del interés es obligatorio', ['status' => 400]);
@@ -208,10 +228,12 @@ function geointerest_create_interest($request) {
             'slug' => $slug,
             'icon' => $icon ?: '⭐',
             'color' => $color ?: '#888',
+            'category' => $category ?: '',
+            'creator_id' => $user_id,
             'created_at' => current_time('mysql', 1)
         ],
         [
-            '%s', '%s', '%s', '%s', '%s'
+            '%s', '%s', '%s', '%s', '%s', '%d', '%s'
         ]
     );
 
@@ -224,7 +246,9 @@ function geointerest_create_interest($request) {
                 'name' => $name,
                 'slug' => $slug,
                 'icon' => $icon ?: '⭐',
-                'color' => $color ?: '#888'
+                'color' => $color ?: '#888',
+                'category' => $category ?: '',
+                'creator_id' => $user_id
             ]
         ];
     } else {
@@ -543,15 +567,22 @@ function geointerest_get_user_interests($request) {
     global $wpdb;
     
     $user_id = $request->get_param('authenticated_user_id');
-    
-    $interests = $wpdb->get_results($wpdb->prepare("
-        SELECT i.id, i.name, i.slug, i.icon, i.color
-        FROM {$wpdb->prefix}interests i
-        INNER JOIN {$wpdb->prefix}user_interests ui ON i.id = ui.interest_id
-        WHERE ui.user_id = %d
-    ", $user_id));
-    
-    return $interests;
+    // Intereses donde el usuario es miembro o creador
+    $results = $wpdb->get_results($wpdb->prepare(
+        "SELECT * FROM {$wpdb->prefix}interests WHERE id IN (SELECT interest_id FROM {$wpdb->prefix}user_interests WHERE user_id = %d) OR creator_id = %d",
+        $user_id, $user_id
+    ));
+    return array_map(function($row) {
+        return [
+            'id' => intval($row->id),
+            'name' => $row->name,
+            'slug' => $row->slug,
+            'icon' => $row->icon,
+            'color' => $row->color,
+            'category' => isset($row->category) ? $row->category : '',
+            'creator_id' => isset($row->creator_id) ? intval($row->creator_id) : null
+        ];
+    }, $results);
 }
 
 function geointerest_update_user_interests($request) {

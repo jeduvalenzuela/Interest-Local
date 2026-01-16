@@ -1,0 +1,86 @@
+/* src/components/Dashboard/CreateInterestForm.css */
+
+.create-interest-form {
+  background: #fff;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  max-width: 400px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.create-interest-form h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.15rem;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.create-interest-form input[type="text"] {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.create-interest-form input[type="color"] {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  align-self: flex-start;
+  cursor: pointer;
+}
+
+.create-interest-form button {
+  padding: 0.75rem 1.25rem;
+  background: #2196f3;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.create-interest-form button:disabled {
+  background: #b3e0fc;
+  cursor: not-allowed;
+}
+
+.error-msg {
+  color: #ff4d4f;
+  font-size: 0.95em;
+  margin-top: -0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+  .create-interest-form {
+    padding: 1rem;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 575px) {
+  .create-interest-form {
+    padding: 0.65rem;
+    gap: 0.65rem;
+  }
+  .create-interest-form h3 {
+    font-size: 1rem;
+  }
+  .create-interest-form input[type="text"] {
+    font-size: 0.95rem;
+    padding: 0.6rem;
+  }
+  .create-interest-form button {
+    font-size: 0.95rem;
+    padding: 0.6rem 1rem;
+  }
+}

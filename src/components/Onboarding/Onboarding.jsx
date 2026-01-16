@@ -22,20 +22,58 @@ const Onboarding = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [availableCategories, setAvailableCategories] = useState([]);
 
-  // Check for location on component mount
+
+  // Cargar datos del usuario al montar el componente
   useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('geoi_user'));
+    const token = localStorage.getItem('geoi_token');
+    if (user && token) {
+      apiClient.setToken(token);
+      apiClient.get(`/users/${user.id}`)
+        .then(data => {
+          if (data && data.id) {
+            setFormData(prev => ({
+              ...prev,
+              display_name: data.display_name || '',
+              bio: data.bio || '',
+              phone: data.phone || '',
+              email: data.email || '',
+              address: data.address || '',
+              avatar_url: data.avatar_url || '',
+              instagram: data.instagram || '',
+              twitter: data.twitter || '',
+              facebook: data.facebook || '',
+              interests: Array.isArray(data.interests) ? data.interests : []
+            }));
+          }
+        })
+        .catch(err => {
+          console.error('Error loading user profile:', err);
+        });
+    }
     if (!location && !locationLoading) {
       // Location permission not granted, ask user
       console.log('Requesting location permission...');
     }
   }, [location, locationLoading]);
 
-  const availableInterests = [
-    'Sports', 'Music', 'Art', 'Technology', 
-    'Gastronomy', 'Nature', 'Cinema', 'Reading',
-    'Photography', 'Travel', 'Fitness', 'Gaming'
-  ];
+  // Cargar categorías de intereses desde la API
+  useEffect(() => {
+    apiClient.get('/interests').then(data => {
+      // Si la API devuelve un array de intereses, extraer las categorías únicas
+      if (Array.isArray(data)) {
+        const categories = Array.from(new Set(data.map(i => i.category).filter(Boolean)));
+        setAvailableCategories(categories);
+      } else if (Array.isArray(data.interests)) {
+        const categories = Array.from(new Set(data.interests.map(i => i.category).filter(Boolean)));
+        setAvailableCategories(categories);
+      }
+    }).catch(err => {
+      console.error('Error fetching categories:', err);
+    });
+  }, []);
 
   const toggleInterest = (interest) => {
     if (formData.interests.includes(interest)) {
@@ -275,16 +313,17 @@ const Onboarding = () => {
 
             {/* Interests */}
             <div className="form-section">
-              <label>Selecciona tus intereses (mínimo 3) *</label>
+              <label>Selecciona tus intereses/categorías (mínimo 3) *</label>
               <div className="interests-grid">
-                {availableInterests.map(interest => (
+                {availableCategories.length === 0 && <span>No hay categorías disponibles.</span>}
+                {availableCategories.map(category => (
                   <button
-                    key={interest}
-                    className={`interest-tag ${formData.interests.includes(interest) ? 'selected' : ''}`}
-                    onClick={() => toggleInterest(interest)}
+                    key={category}
+                    className={`interest-tag ${formData.interests.includes(category) ? 'selected' : ''}`}
+                    onClick={() => toggleInterest(category)}
                     disabled={loading}
                   >
-                    {interest}
+                    {category}
                   </button>
                 ))}
               </div>

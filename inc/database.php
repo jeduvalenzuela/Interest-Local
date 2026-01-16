@@ -2,6 +2,17 @@
 if (!defined('ABSPATH')) exit;
 
 function geointerest_create_tables() {
+        // Tabla de categorías de intereses
+        $sql_categories = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}interest_categories (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            name VARCHAR(100) NOT NULL,
+            slug VARCHAR(100) NOT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY slug (slug),
+            KEY name_idx (name)
+        ) $charset_collate;";
+
     global $wpdb;
     $charset_collate = $wpdb->get_charset_collate();
     
@@ -27,10 +38,13 @@ function geointerest_create_tables() {
         slug VARCHAR(100) NOT NULL,
         icon VARCHAR(50) DEFAULT NULL,
         color VARCHAR(7) DEFAULT NULL,
+        category VARCHAR(50) DEFAULT NULL,
+        creator_id BIGINT(20) UNSIGNED NOT NULL,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
         UNIQUE KEY slug (slug),
-        KEY name_idx (name)
+        KEY name_idx (name),
+        KEY creator_idx (creator_id)
     ) $charset_collate;";
     
     // User Interests
@@ -94,6 +108,7 @@ function geointerest_create_tables() {
     dbDelta($sql_messages);
     dbDelta($sql_tokens);
     dbDelta($sql_posts);
+    dbDelta($sql_categories);
     
     // Seed inicial de intereses
     geointerest_seed_interests();
