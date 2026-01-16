@@ -1,30 +1,50 @@
-import React, { useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../../utils/api';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useAuth } from '../../context/AuthContext';
 import './NearbyInterests.css';
 
-/**
- * Component to display nearby interests with member count
- * Fixed radius: 1km (1000 meters)
- */
 export default function NearbyInterests() {
   const navigate = useNavigate();
   const { location, loading: locationLoading, error: locationError } = useUserLocation();
   const { user } = useAuth();
 
+  // State for dynamic radius
+  const [radius, setRadius] = useState(1000); // default initial value
+
+  // Get dynamic radius from backend
+  useEffect(() => {
+    apiClient.get('/system/radius').then((res) => {
+      if (res && res.radius_meters) {
+        setRadius(res.radius_meters);
+      }
+    }).catch(() => {});
+  }, []);
+
+  // Forums where the user has participated (only if user exists)
+  const { data: userForums = [], isLoading: loadingUserForums } = useQuery({
+    queryKey: ['userForums', user?.id],
+    queryFn: () => {
+      if (user && user.id) {
+        return apiClient.get('/user/forums', { authenticated_user_id: user.id });
+      }
+      return [];
+    },
+    enabled: !!user && !!user.id
+  });
+
   // Load nearby interests
   const { data: nearbyInterests = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['nearbyInterests', location?.latitude, location?.longitude],
+    queryKey: ['nearbyInterests', location?.latitude, location?.longitude, radius],
     queryFn: () => {
-      if (location) {
+      if (location && radius) {
         return apiClient
           .get('/interests/nearby', {
             latitude: location.latitude,
             longitude: location.longitude,
-            radius: 1000, // 1km fixed
+            radius: radius,
           })
           .then((res) => {
             const interests = Array.isArray(res) ? res : res.interests || [];
@@ -33,13 +53,13 @@ export default function NearbyInterests() {
       }
       return [];
     },
-    enabled: !!location,
+    enabled: !!location && !!radius,
     refetchInterval: 30000,
   });
 
-  // Foros creados por el usuario
+  // Forums created by the user
   const userCreated = nearbyInterests.filter(i => i.creator_id === user?.id);
-  // Foros categorizados con intereses de onboarding Y con participantes a menos de 1km
+  // Forums categorized with onboarding interests AND with participants within 1km
   const userCategories = Array.isArray(user?.interests) ? user.interests : [];
   const categorizedWithMembers = nearbyInterests.filter(i => userCategories.includes(i.category));
 
@@ -92,7 +112,7 @@ export default function NearbyInterests() {
     return (
       <div className="nearby-interests empty">
         <div className="empty-icon">🔍</div>
-        <p>No nearby interests within 1km</p>
+        <p>No nearby interests within { (radius/1000).toFixed(2) } km</p>
         <small>Try moving to another location or select interests in your profile</small>
       </div>
     );
@@ -101,12 +121,12 @@ export default function NearbyInterests() {
   return (
     <div className="nearby-interests">
       <div className="interests-header">
-        <h2>Nearby Interests (1km)</h2>
+        <h2>Nearby Interests ({ (radius/1000).toFixed(2) } km)</h2>
         <span className="count">{nearbyInterests.length}</span>
       </div>
 
       <div className="interests-list">
-        {/* Foros creados por el usuario */}
+        {/* Forums created by the user */}
         {userCreated.length > 0 && <>
           <h3>Your Forums</h3>
           {userCreated.map((interest) => (
@@ -135,7 +155,7 @@ export default function NearbyInterests() {
           ))}
         </>}
 
-        {/* Foros categorizados con intereses de onboarding Y con participantes a menos de 1km */}
+        {/* Forums categorized with onboarding interests AND with participants within 1km */}
         {categorizedWithMembers.length > 0 && <>
           <h3>Forums in Your Categories (within 1km)</h3>
           {categorizedWithMembers.map((interest) => (
@@ -163,6 +183,36 @@ export default function NearbyInterests() {
             </div>
           ))}
         </>}
+      </div>
+
+      {/* Section: forums where the user has participated */}
+      <div className="user-forums-section">
+        <h2>Forums you participated in</h2>
+        {!user || !user.id ? (
+          <p>You must be logged in to see your forums.</p>
+        ) : loadingUserForums ? (
+          <div className="spinner">⏳</div>
+        ) : userForums.length === 0 ? (
+          <p>You haven't participated in any forum yet.</p>
+        ) : (
+          <div className="interests-list">
+            {userForums.map((forum) => (
+              <div
+                key={forum.id}
+                className="interest-card"
+                onClick={() => navigate(`/forum/${forum.id}`)}
+              >
+                <div className="interest-content">
+                  <div className="interest-icon">{forum.icon || '⭐'}</div>
+                  <div className="interest-info">
+                    <h3 className="interest-name">{forum.name}</h3>
+                    <span className="category-label">Category: {forum.category}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="location-info">

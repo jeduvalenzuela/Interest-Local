@@ -9,7 +9,13 @@
 // Prevent direct access
 if (!defined('ABSPATH')) exit;
 
-
+/**
+ * ============================
+ * Theme Constants
+ * ============================
+ */
+define('GEOINTEREST_VERSION', '1.0.24');
+define('GEOINTEREST_INC', get_template_directory() . '/inc/');
 
 /**
  * Create custom table for forum messages on theme activation
@@ -55,11 +61,17 @@ add_action('admin_menu', function() {
                 echo '<tr>';
                 echo '<td>' . esc_html($msg->id) . '</td>';
                 echo '<td>' . esc_html($msg->interest_id) . '</td>';
-                echo '<td>' . esc_html($msg->author_name) . '</td>';
+                // author_name
+                $author_name = isset($msg->author_name) ? $msg->author_name : (isset($msg->user_id) ? $msg->user_id : '');
+                echo '<td>' . esc_html($author_name) . '</td>';
                 echo '<td>' . esc_html($msg->content) . '</td>';
                 echo '<td>' . esc_html($msg->created_at) . '</td>';
-                echo '<td>' . esc_html($msg->status) . '</td>';
-                echo '<td>' . esc_html($msg->report_count) . '</td>';
+                // status
+                $status = isset($msg->status) ? $msg->status : '';
+                echo '<td>' . esc_html($status) . '</td>';
+                // report_count
+                $report_count = isset($msg->report_count) ? $msg->report_count : '';
+                echo '<td>' . esc_html($report_count) . '</td>';
                 echo '<td><a href="?page=forum-messages&delete=' . esc_attr($msg->id) . '" onclick="return confirm(\'Delete this message?\')">Delete</a></td>';
                 echo '</tr>';
             }
@@ -189,16 +201,41 @@ add_action('admin_menu', function() {
         'dashicons-groups',
         8
     );
+
+    // Opciones de configuración del sistema
+    add_options_page(
+        'Interest Local Settings',
+        'Interest Local Settings',
+        'manage_options',
+        'interest-local-settings',
+        function() {
+            // Guardar configuración
+            if (isset($_POST['save_settings'])) {
+                $radius_km = floatval($_POST['radius_km']);
+                $zone_mode = isset($_POST['zone_mode']) ? sanitize_text_field($_POST['zone_mode']) : 'anchored';
+                update_option('interest_local_radius_km', $radius_km);
+                update_option('interest_local_zone_mode', $zone_mode);
+                echo '<div class="updated"><p>Configuración guardada.</p></div>';
+            }
+            $radius_km = get_option('interest_local_radius_km', 1);
+            $zone_mode = get_option('interest_local_zone_mode', 'anchored');
+            echo '<div class="wrap"><h1>Interest Local Settings</h1>';
+            echo '<form method="post">';
+            echo '<label for="radius_km"><strong>Radio de búsqueda (km):</strong></label><br />';
+            echo '<input type="number" step="0.1" min="0.1" name="radius_km" id="radius_km" value="' . esc_attr($radius_km) . '" style="width:100px;" />';
+            echo '<p>Determina el radio en kilómetros para mostrar foros e intereses cercanos.</p>';
+            echo '<label for="zone_mode"><strong>Modo de zona de intereses:</strong></label><br />';
+            echo '<select name="zone_mode" id="zone_mode">';
+            echo '<option value="anchored"' . ($zone_mode === 'anchored' ? ' selected' : '') . '>Zona anclada (fija)</option>';
+            echo '<option value="dynamic"' . ($zone_mode === 'dynamic' ? ' selected' : '') . '>Zona dinámica (se mueve con los usuarios)</option>';
+            echo '</select>';
+            echo '<p>Zona anclada: el foro/interés permanece en la ubicación original.<br>Zona dinámica: la zona se actualiza según los usuarios que participan.</p>';
+            echo '<button type="submit" name="save_settings" class="button button-primary">Guardar</button>';
+            echo '</form>';
+            echo '</div>';
+        }
+    );
 });
-
-
-/**
- * ============================
- * Theme Constants
- * ============================
- */
-define('GEOINTEREST_VERSION', '1.0.13');
-define('GEOINTEREST_INC', get_template_directory() . '/inc/');
 
 /**
  * ============================
@@ -232,9 +269,13 @@ require_once GEOINTEREST_INC . 'database.php';
 require_once GEOINTEREST_INC . 'jwt-auth.php';
 require_once GEOINTEREST_INC . 'matching-engine.php';
 require_once GEOINTEREST_INC . 'api-endpoints.php';
+
 require_once GEOINTEREST_INC . 'helpers.php';
 require_once GEOINTEREST_INC . 'admin-posts.php';
 require_once GEOINTEREST_INC . 'admin-users.php';
+require_once GEOINTEREST_INC . 'api-endpoints-extra.php';
+require_once GEOINTEREST_INC . 'api-endpoints-user-forums.php';
+
 
 /**
  * ============================

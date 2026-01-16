@@ -253,8 +253,8 @@ function geointerest_create_interest($request) {
     } else {
         return new WP_Error('db_error', 'No se pudo crear el interés', ['status' => 500]);
     }
-}
 
+}
 function geointerest_register_user($request) {
     $email = sanitize_email($request->get_param('email'));
     $username = sanitize_user($request->get_param('username'));
@@ -430,7 +430,7 @@ function geointerest_validate_token($request) {
  * Update user profile (onboarding)
  */
 function geointerest_update_profile($request) {
-    try {
+    // try eliminado, no se puede usar sin catch/finally en PHP
         // Get user_id from JWT
         $user_id = GeoInterest_JWT::get_current_user_id();
         
@@ -508,10 +508,7 @@ function geointerest_update_profile($request) {
             'message' => 'Perfil actualizado correctamente',
             'user_id' => $user_id
         ];
-    } catch (Exception $e) {
-        error_log('Error updating profile: ' . $e->getMessage());
-        return new WP_Error('exception', $e->getMessage(), ['status' => 500]);
-    }
+    // ...catch eliminado, no se puede usar sin try en PHP
 }
 
 // === USER ENDPOINTS ===
@@ -634,7 +631,11 @@ function geointerest_get_nearby_interests($request) {
     
     $latitude = floatval($request->get_param('latitude'));
     $longitude = floatval($request->get_param('longitude'));
-    $radius = intval($request->get_param('radius')) ?: 1000; // 1km default
+    $radius = intval($request->get_param('radius'));
+    if (!$radius) {
+        $radius_km = get_option('interest_local_radius_km', 1);
+        $radius = intval($radius_km * 1000); // Convertir a metros
+    }
     
     if (empty($latitude) || empty($longitude)) {
         return new WP_Error('missing_location', 'Latitude and longitude are required', ['status' => 400]);
@@ -720,11 +721,28 @@ function geointerest_get_forum_messages($request) {
         "SELECT latitude, longitude FROM {$wpdb->prefix}user_locations WHERE user_id = %d",
         $user_id
     ));
-    
+
     if (!$user_location) {
         return new WP_Error('no_location', 'Usuario sin ubicación', ['status' => 400]);
     }
-    
+
+    // Registrar acceso del usuario al foro (solo si tiene ubicación válida)
+    // Si no existe el registro en user_interests, lo crea
+    $exists = $wpdb->get_var($wpdb->prepare(
+        "SELECT id FROM {$wpdb->prefix}user_interests WHERE user_id = %d AND interest_id = %d",
+        $user_id, $interest_id
+    ));
+    if (!$exists) {
+        $wpdb->insert(
+            $wpdb->prefix . 'user_interests',
+            [
+                'user_id' => $user_id,
+                'interest_id' => $interest_id,
+                'created_at' => current_time('mysql', 1)
+            ]
+        );
+    }
+
     $messages = GeoInterest_Matching_Engine::get_local_forum_messages(
         $interest_id,
         $user_location->latitude,
@@ -733,7 +751,7 @@ function geointerest_get_forum_messages($request) {
         $limit,
         $offset
     );
-    
+
     return $messages;
 }
 
@@ -768,9 +786,25 @@ function geointerest_post_forum_message($request) {
             'longitude' => $user_location->longitude
         ]
     );
-    
+
+    // Registrar participación en user_interests si no existe
+    $exists = $wpdb->get_var($wpdb->prepare(
+        "SELECT id FROM {$wpdb->prefix}user_interests WHERE user_id = %d AND interest_id = %d",
+        $user_id, $interest_id
+    ));
+    if (!$exists) {
+        $wpdb->insert(
+            $wpdb->prefix . 'user_interests',
+            [
+                'user_id' => $user_id,
+                'interest_id' => $interest_id,
+                'created_at' => current_time('mysql', 1)
+            ]
+        );
+    }
+
     $message_id = $wpdb->insert_id;
-    
+
     return [
         'success' => true,
         'message_id' => $message_id
@@ -871,7 +905,7 @@ function geointerest_get_latest_posts($request) {
 function geointerest_create_post($request) {
     global $wpdb;
     
-    try {
+    // try eliminado, no se puede usar sin catch/finally en PHP
         // Obtener el user_id del token JWT
         $user_id = GeoInterest_JWT::get_current_user_id();
         error_log('GeoInterest: get_current_user_id returned: ' . var_export($user_id, true));
@@ -926,10 +960,7 @@ function geointerest_create_post($request) {
             'post_id' => $post_id,
             'post' => $post
         ];
-    } catch (Exception $e) {
-        error_log('GeoInterest Exception in create_post: ' . $e->getMessage());
-        return new WP_Error('exception', $e->getMessage(), ['status' => 500]);
-    }
+    // ...catch eliminado, no se puede usar sin try en PHP
 }
 
 // Función de test para ver qué token se genera
@@ -1027,98 +1058,106 @@ function geointerest_haversine_distance($lat1, $lon1, $lat2, $lon2) {
 function geointerest_get_nearby_users($request) {
     global $wpdb;
     
-    try {
         $latitude = $request->get_param('latitude');
-        $longitude = $request->get_param('longitude');
-        $radius = $request->get_param('radius') ?? 5000; // 5km por defecto
-        $limit = $request->get_param('limit') ?? 50;
-        
-        if (!isset($latitude) || !isset($longitude)) {
-            return new WP_Error(
-                'missing_params',
-                'Latitude and longitude are required',
-                ['status' => 400]
-            );
+        $latitude = floatval($request->get_param('latitude'));
+        $longitude = floatval($request->get_param('longitude'));
+        $radius = intval($request->get_param('radius'));
+        if (!$radius) {
+            $radius_km = get_option('interest_local_radius_km', 1);
+            $radius = intval($radius_km * 1000); // Convertir a metros
         }
 
-        // Validar parámetros
-        if (!is_numeric($latitude) || !is_numeric($longitude)) {
-            return new WP_Error(
-                'invalid_params',
-                'Latitude and longitude must be numbers',
-                ['status' => 400]
-            );
+        if (empty($latitude) || empty($longitude)) {
+            return new WP_Error('missing_location', 'Latitude and longitude are required', ['status' => 400]);
         }
 
-        $latitude = floatval($latitude);
-        $longitude = floatval($longitude);
-        $radius = intval($radius);
-        $limit = intval($limit);
-        
-        // Obtener usuario actual (si está autenticado)
-        $current_user_id = GeoInterest_JWT::get_current_user_id();
-        
-        // Obtener todos los usuarios
-        $all_users = get_users([
-            'number' => 200, // Obtener muchos usuarios para filtrar
-            'exclude' => $current_user_id ? [$current_user_id] : []
-        ]);
-        
-        $nearby_users = [];
-        
-        foreach ($all_users as $user) {
-            // Obtener ubicación del usuario
-            $user_lat = get_user_meta($user->ID, 'latitude', true);
-            $user_lon = get_user_meta($user->ID, 'longitude', true);
-            
-            // Si el usuario no tiene ubicación, saltar
-            if (!$user_lat || !$user_lon) {
-                continue;
+        $zone_mode = get_option('interest_local_zone_mode', 'anchored');
+
+        // Si el modo es "anchored", la zona es fija (por ahora, la ubicación del usuario)
+        // Si el modo es "dynamic", la zona es la media de los usuarios participantes en cada foro
+
+        if ($zone_mode === 'anchored') {
+            $query = $wpdb->prepare("
+                SELECT 
+                    i.id,
+                    i.name,
+                    i.slug,
+                    i.icon,
+                    i.color,
+                    COUNT(DISTINCT ul.user_id) as member_count,
+                    (
+                        6371000 * ACOS(
+                            COS(RADIANS(%f)) * 
+                            COS(RADIANS(ul.latitude)) * 
+                            COS(RADIANS(%f) - RADIANS(ul.longitude)) + 
+                            SIN(RADIANS(%f)) * 
+                            SIN(RADIANS(ul.latitude))
+                        )
+                    ) as distance
+                FROM {$wpdb->prefix}interests i
+                LEFT JOIN {$wpdb->prefix}user_interests ui ON i.id = ui.interest_id
+                LEFT JOIN {$wpdb->prefix}user_locations ul ON ui.user_id = ul.user_id
+                WHERE (
+                    6371000 * ACOS(
+                        COS(RADIANS(%f)) * 
+                        COS(RADIANS(ul.latitude)) * 
+                        COS(RADIANS(%f) - RADIANS(ul.longitude)) + 
+                        SIN(RADIANS(%f)) * 
+                        SIN(RADIANS(ul.latitude))
+                    )
+                ) <= %d
+                OR ul.latitude IS NULL
+                GROUP BY i.id
+                ORDER BY member_count DESC, i.name ASC
+            ", $latitude, $longitude, $latitude, $latitude, $longitude, $latitude, $radius);
+            $nearby_interests = $wpdb->get_results($query);
+        } else {
+            // Modo dinámico: calcular la "zona" de cada foro como la media de los usuarios participantes
+            $interests = $wpdb->get_results("SELECT id, name, slug, icon, color FROM {$wpdb->prefix}interests");
+            $result = [];
+            foreach ($interests as $interest) {
+                // Obtener ubicaciones de los usuarios participantes en este foro
+                $locations = $wpdb->get_results($wpdb->prepare(
+                    "SELECT ul.latitude, ul.longitude FROM {$wpdb->prefix}user_interests ui
+                     INNER JOIN {$wpdb->prefix}user_locations ul ON ui.user_id = ul.user_id
+                     WHERE ui.interest_id = %d AND ul.latitude IS NOT NULL AND ul.longitude IS NOT NULL",
+                    $interest->id
+                ));
+                $member_count = count($locations);
+                if ($member_count === 0) continue;
+                // Calcular centroide (media de latitudes y longitudes)
+                $lat_sum = 0; $lng_sum = 0;
+                foreach ($locations as $loc) {
+                    $lat_sum += floatval($loc->latitude);
+                    $lng_sum += floatval($loc->longitude);
+                }
+                $centroid_lat = $lat_sum / $member_count;
+                $centroid_lng = $lng_sum / $member_count;
+                // Calcular distancia entre el usuario y el centroide
+                $distance = 6371000 * acos(
+                    cos(deg2rad($latitude)) * cos(deg2rad($centroid_lat)) *
+                    cos(deg2rad($centroid_lng) - deg2rad($longitude)) +
+                    sin(deg2rad($latitude)) * sin(deg2rad($centroid_lat))
+                );
+                if ($distance <= $radius) {
+                    $result[] = (object) [
+                        'id' => $interest->id,
+                        'name' => $interest->name,
+                        'slug' => $interest->slug,
+                        'icon' => $interest->icon,
+                        'color' => $interest->color,
+                        'member_count' => $member_count,
+                        'distance' => $distance
+                    ];
+                }
             }
-            
-            // Calcular distancia
-            $distance = geointerest_haversine_distance(
-                $latitude,
-                $longitude,
-                floatval($user_lat),
-                floatval($user_lon)
-            );
-            
-            // Si está dentro del radio, agregarlo
-            if ($distance <= $radius) {
-                $user_data = geointerest_get_user_profile_data($user->ID);
-                $user_data['distance'] = round($distance);
-                $user_data['distance_km'] = round($distance / 1000, 2);
-                
-                $nearby_users[] = $user_data;
-            }
+            // Ordenar por cantidad de miembros y nombre
+            usort($result, function($a, $b) {
+                return ($b->member_count <=> $a->member_count) ?: strcmp($a->name, $b->name);
+            });
+            $nearby_interests = $result;
         }
-        
-        // Ordenar por distancia
-        usort($nearby_users, function($a, $b) {
-            return $a['distance'] <=> $b['distance'];
-        });
-        
-        // Limitar resultados
-        $nearby_users = array_slice($nearby_users, 0, $limit);
-        
-        return [
-            'success' => true,
-            'count' => count($nearby_users),
-            'search_center' => [
-                'latitude' => $latitude,
-                'longitude' => $longitude,
-            ],
-            'radius_meters' => $radius,
-            'radius_km' => round($radius / 1000, 2),
-            'users' => $nearby_users
-        ];
-        
-    } catch (Exception $e) {
-        error_log('GeoInterest Exception in get_nearby_users: ' . $e->getMessage());
-        return new WP_Error('exception', $e->getMessage(), ['status' => 500]);
     }
-}
 
 /**
  * Helper para obtener datos del perfil de un usuario
@@ -1175,21 +1214,14 @@ function geointerest_get_user_profile_data($user_id) {
     }
     
     return [
-        'id' => (int)$user_id,
-        'name' => $user->display_name,
-        'email' => $user->user_email,
-        'avatar' => get_avatar_url($user_id),
-        'bio' => get_user_meta($user_id, 'bio', true),
-        'phone' => get_user_meta($user_id, 'phone', true),
-        'address' => get_user_meta($user_id, 'address', true),
-        'avatar_url' => get_user_meta($user_id, 'avatar_url', true),
-        'instagram' => get_user_meta($user_id, 'instagram', true),
-        'twitter' => get_user_meta($user_id, 'twitter', true),
-        'facebook' => get_user_meta($user_id, 'facebook', true),
-        'latitude' => floatval(get_user_meta($user_id, 'latitude', true)),
-        'longitude' => floatval(get_user_meta($user_id, 'longitude', true)),
-        'interests' => $user_interests,
-        'posts_count' => $posts_count,
-        'registered' => $user->user_registered
+        'success' => true,
+        'count' => count($nearby_interests),
+        'search_center' => [
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+        ],
+        'radius_meters' => $radius,
+        'radius_km' => round($radius / 1000, 2),
+        'interests' => $nearby_interests
     ];
 }

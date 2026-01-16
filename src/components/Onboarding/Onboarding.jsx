@@ -29,30 +29,34 @@ const Onboarding = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('geoi_user'));
     const token = localStorage.getItem('geoi_token');
-    if (user && token) {
-      apiClient.setToken(token);
-      apiClient.get(`/users/${user.id}`)
-        .then(data => {
-          if (data && data.id) {
-            setFormData(prev => ({
-              ...prev,
-              display_name: data.display_name || '',
-              bio: data.bio || '',
-              phone: data.phone || '',
-              email: data.email || '',
-              address: data.address || '',
-              avatar_url: data.avatar_url || '',
-              instagram: data.instagram || '',
-              twitter: data.twitter || '',
-              facebook: data.facebook || '',
-              interests: Array.isArray(data.interests) ? data.interests : []
-            }));
-          }
-        })
-        .catch(err => {
-          console.error('Error loading user profile:', err);
-        });
+    if (!user || !token) {
+      // Si no hay usuario, redirigir o mostrar error
+      setError('No se encontró información de usuario. Por favor, inicia sesión de nuevo.');
+      // navigate('/login'); // Descomenta si quieres redirigir automáticamente
+      return;
     }
+    apiClient.setToken(token);
+    apiClient.get(`/users/${user.id}`)
+      .then(data => {
+        if (data && data.id) {
+          setFormData(prev => ({
+            ...prev,
+            display_name: data.display_name || '',
+            bio: data.bio || '',
+            phone: data.phone || '',
+            email: data.email || '',
+            address: data.address || '',
+            avatar_url: data.avatar_url || '',
+            instagram: data.instagram || '',
+            twitter: data.twitter || '',
+            facebook: data.facebook || '',
+            interests: Array.isArray(data.interests) ? data.interests : []
+          }));
+        }
+      })
+      .catch(err => {
+        console.error('Error loading user profile:', err);
+      });
     if (!location && !locationLoading) {
       // Location permission not granted, ask user
       console.log('Requesting location permission...');
@@ -102,6 +106,12 @@ const Onboarding = () => {
     const user = JSON.parse(localStorage.getItem('geoi_user'));
     const token = localStorage.getItem('geoi_token');
 
+    if (!user || !token) {
+      setError('No se encontró información de usuario. Por favor, inicia sesión de nuevo.');
+      // navigate('/login'); // Descomenta si quieres redirigir automáticamente
+      return;
+    }
+
     if (!formData.display_name) {
       setError('El nombre es requerido');
       return;
@@ -118,7 +128,6 @@ const Onboarding = () => {
     try {
       // ✅ Use apiClient which already has the correct URL
       apiClient.setToken(token);
-      
       const data = await apiClient.post('/user/profile', {
         user_id: user.id,
         latitude: location.latitude,
