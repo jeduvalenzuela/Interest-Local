@@ -1,22 +1,3 @@
-// === ENDPOINT: Listar categorías de intereses ===
-add_action('rest_api_init', function() {
-    register_rest_route('geointerest/v1', '/interest-categories', [
-        'methods' => 'GET',
-        'callback' => function() {
-            global $wpdb;
-            $table = $wpdb->prefix . 'interest_categories';
-            $results = $wpdb->get_results("SELECT * FROM $table ORDER BY name ASC");
-            return array_map(function($row) {
-                return [
-                    'id' => intval($row->id),
-                    'name' => $row->name,
-                    'slug' => $row->slug
-                ];
-            }, $results);
-        },
-        'permission_callback' => '__return_true',
-    ]);
-});
 <?php
 if (!defined('ABSPATH')) exit;
 
@@ -184,6 +165,24 @@ function geointerest_register_endpoints() {
         'methods' => 'GET',
         'callback' => 'geointerest_get_user_profile',
         'permission_callback' => '__return_true'
+    ]);
+
+    // === ENDPOINT: Listar categorías de intereses ===
+    register_rest_route('geointerest/v1', '/interest-categories', [
+        'methods' => 'GET',
+        'callback' => function() {
+            global $wpdb;
+            $table = $wpdb->prefix . 'interest_categories';
+            $results = $wpdb->get_results("SELECT * FROM $table ORDER BY name ASC");
+            return array_map(function($row) {
+                return [
+                    'id' => intval($row->id),
+                    'name' => $row->name,
+                    'slug' => $row->slug
+                ];
+            }, $results);
+        },
+        'permission_callback' => '__return_true',
     ]);
 }
 

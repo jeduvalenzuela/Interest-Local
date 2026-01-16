@@ -16,16 +16,14 @@ export default function CreateInterestForm({ onCreated }) {
   // Icon options (emojis)
   const iconOptions = ['⭐', '🎵', '⚽', '🎨', '💻', '🍔', '🌳', '🎬', '📚', '📷', '✈️', '🏋️', '🎮'];
 
-  // Obtener categorías desde la API
-  const { data: interestsData } = useQuery({
-    queryKey: ['allInterests'],
-    queryFn: () => apiClient.get('/interests'),
+  // Obtener categorías desde la API nueva
+  const { data: categoriesData } = useQuery({
+    queryKey: ['interestCategories'],
+    queryFn: () => apiClient.get('/interest-categories'),
   });
-  const availableCategories = Array.isArray(interestsData)
-    ? Array.from(new Set(interestsData.map(i => i.category).filter(Boolean)))
-    : Array.isArray(interestsData?.interests)
-      ? Array.from(new Set(interestsData.interests.map(i => i.category).filter(Boolean)))
-      : [];
+  const availableCategories = Array.isArray(categoriesData)
+    ? categoriesData.map(cat => cat.name)
+    : [];
 
   const mutation = useMutation({
     mutationFn: (data) => apiClient.post('/interests', data),

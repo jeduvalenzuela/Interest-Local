@@ -59,16 +59,11 @@ const Onboarding = () => {
     }
   }, [location, locationLoading]);
 
-  // Cargar categorías de intereses desde la API
+  // Cargar categorías de intereses desde la API nueva
   useEffect(() => {
-    apiClient.get('/interests').then(data => {
-      // Si la API devuelve un array de intereses, extraer las categorías únicas
+    apiClient.get('/interest-categories').then(data => {
       if (Array.isArray(data)) {
-        const categories = Array.from(new Set(data.map(i => i.category).filter(Boolean)));
-        setAvailableCategories(categories);
-      } else if (Array.isArray(data.interests)) {
-        const categories = Array.from(new Set(data.interests.map(i => i.category).filter(Boolean)));
-        setAvailableCategories(categories);
+        setAvailableCategories(data.map(cat => cat.name));
       }
     }).catch(err => {
       console.error('Error fetching categories:', err);
