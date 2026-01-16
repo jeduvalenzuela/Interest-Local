@@ -52,7 +52,7 @@ export default function Dashboard() {
       </aside>
 
       <main style={{ flex: 1, padding: '2rem' }}>
-        <h1>Bienvenido a GeoInterest</h1>
+        <h1>Bienvenido a Interest Local</h1>
         <p>Seleccioná un interés para ver los foros locales.</p>
         {location && (
           <div style={{ marginTop: '2rem', padding: '1rem', background: '#e8f5e9', borderRadius: '8px' }}>

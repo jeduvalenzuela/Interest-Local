@@ -26,10 +26,9 @@ const Navbar = () => {
   return (
     <nav className="navbar"> {/* Borde rojo temporal para verlo */}
       <div className="navbar-container">
-        <Link to="/dashboard">📍 GeoInterest</Link>
+        <Link to="/dashboard">📍 Interest Local</Link>
         <div className="navbar-menu">
-          <Link to="/dashboard">📱 Dashboard</Link>
-          <Link to="/map">🗺️ Mapa</Link>
+          <Link to="/dashboard">📍 Intereses Cercanos</Link>
           <Link to="/onboarding">👤 Perfil</Link>
           <button onClick={handleLogout} className="btn-logout">Cerrar Sesión</button>
         </div>

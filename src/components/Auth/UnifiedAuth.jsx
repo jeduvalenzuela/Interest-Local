@@ -64,13 +64,13 @@ const UnifiedAuth = () => {
     <div className="unified-auth">
       <div className="auth-card">
         <div className="logo">
-          <h1>GeoInterest</h1>
-          <p className="tagline">Connect with your surroundings</p>
+          <h1>Interest Local</h1>
+          <p className="tagline">Conecta con tu comunidad local</p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="phone">Phone Number</label>
+            <label htmlFor="phone">Número de Teléfono</label>
             <div className="phone-input">
               <span className="country-code">+54</span>
               <input
@@ -97,14 +97,14 @@ const UnifiedAuth = () => {
             className="btn-primary"
             disabled={loading || phone.length < 8}
           >
-            {loading ? 'Connecting...' : 'Login'}
+            {loading ? 'Conectando...' : 'Ingresar'}
           </button>
         </form>
 
         <p className="info-text">
           {phone.length === 0 
-            ? 'Enter your phone number to get started'
-            : 'If it\'s your first time, we\'ll create an account automatically'
+            ? 'Ingresa tu número de teléfono para comenzar'
+            : 'Si es tu primera vez, crearemos una cuenta automáticamente'
           }
         </p>
       </div>

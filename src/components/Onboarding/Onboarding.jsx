@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../utils/api'; // ✅ Import apiClient
+import { useUserLocation } from '../../hooks/useUserLocation';
 import './Onboarding.css';
 
 const Onboarding = () => {
+  const navigate = useNavigate();
+  const { location, loading: locationLoading, requestPermission } = useUserLocation();
+  
   const [formData, setFormData] = useState({
     display_name: '',
     bio: '',
@@ -18,7 +22,14 @@ const Onboarding = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+
+  // Check for location on component mount
+  useEffect(() => {
+    if (!location && !locationLoading) {
+      // Location permission not granted, ask user
+      console.log('Requesting location permission...');
+    }
+  }, [location, locationLoading]);
 
   const availableInterests = [
     'Sports', 'Music', 'Art', 'Technology', 
@@ -49,16 +60,22 @@ const Onboarding = () => {
   };
 
   const handleComplete = async () => {
+    // ✅ Verificar ubicación obligatoria
+    if (!location) {
+      setError('Debe habilitar la ubicación para continuar. Por favor, permite el acceso a tu ubicación.');
+      return;
+    }
+
     const user = JSON.parse(localStorage.getItem('geoi_user'));
     const token = localStorage.getItem('geoi_token');
 
     if (!formData.display_name) {
-      setError('Name is required');
+      setError('El nombre es requerido');
       return;
     }
 
     if (formData.interests.length < 3) {
-      setError('Select at least 3 interests');
+      setError('Selecciona al menos 3 intereses');
       return;
     }
 
@@ -71,6 +88,8 @@ const Onboarding = () => {
       
       const data = await apiClient.post('/user/profile', {
         user_id: user.id,
+        latitude: location.latitude,
+        longitude: location.longitude,
         ...formData
       });
 
@@ -80,184 +99,209 @@ const Onboarding = () => {
         localStorage.setItem('geoi_user', JSON.stringify(user));
         navigate('/dashboard');
       } else {
-        setError(data?.message || 'Error saving profile');
+        setError(data?.message || 'Error guardando el perfil');
       }
     } catch (err) {
       console.error('Error saving profile:', err);
-      setError(err.message || 'Connection error');
+      setError(err.message || 'Error de conexión');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSkip = () => {
-    navigate('/dashboard');
-  };
-
   return (
     <div className="onboarding">
       <div className="onboarding-card">
-        <h2>Welcome to GeoInterest! 🎉</h2>
-        <p className="subtitle">Complete your profile to better connect with your surroundings</p>
+        <h2>¡Bienvenido a Interest Local! 🎉</h2>
+        <p className="subtitle">Completa tu perfil para conectar con tu comunidad local</p>
 
         {error && <div className="error-message">{error}</div>}
 
-        {/* Basic Information */}
-        <div className="form-section">
-          <h3>📋 Basic Information</h3>
-          
-          <div className="form-group">
-            <label>Full Name *</label>
-            <input
-              type="text"
-              name="display_name"
-              placeholder="Your full name"
-              value={formData.display_name}
-              onChange={handleInputChange}
-              maxLength="50"
-              disabled={loading}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Bio</label>
-            <textarea
-              name="bio"
-              placeholder="Tell us about yourself (max 200 characters)"
-              value={formData.bio}
-              onChange={handleInputChange}
-              maxLength="200"
-              disabled={loading}
-              rows="3"
-            />
-            <small>{formData.bio.length}/200</small>
-          </div>
-
-          <div className="form-group">
-            <label>Profile Picture</label>
-            <input
-              type="url"
-              name="avatar_url"
-              placeholder="https://example.com/photo.jpg"
-              value={formData.avatar_url}
-              onChange={handleInputChange}
-              disabled={loading}
-            />
-          </div>
-        </div>
-
-        {/* Contact */}
-        <div className="form-section">
-          <h3>📞 Contact</h3>
-          
-          <div className="form-group">
-            <label>Phone</label>
-            <input
-              type="tel"
-              name="phone"
-              placeholder="+54 911 2345 6789"
-              value={formData.phone}
-              onChange={handleInputChange}
-              disabled={loading}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              name="email"
-              placeholder="your@email.com"
-              value={formData.email}
-              onChange={handleInputChange}
-              disabled={loading}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Address</label>
-            <input
-              type="text"
-              name="address"
-              placeholder="Your location (city, area)"
-              value={formData.address}
-              onChange={handleInputChange}
-              disabled={loading}
-            />
-          </div>
-        </div>
-
-        {/* Social Media */}
-        <div className="form-section">
-          <h3>🌐 Social Media</h3>
-          
-          <div className="form-group">
-            <label>Instagram</label>
-            <input
-              type="text"
-              name="instagram"
-              placeholder="@your_username"
-              value={formData.instagram}
-              onChange={handleInputChange}
-              disabled={loading}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Twitter</label>
-            <input
-              type="text"
-              name="twitter"
-              placeholder="@your_username"
-              value={formData.twitter}
-              onChange={handleInputChange}
-              disabled={loading}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Facebook</label>
-            <input
-              type="text"
-              name="facebook"
-              placeholder="facebook.com/your_username"
-              value={formData.facebook}
-              onChange={handleInputChange}
-              disabled={loading}
-            />
-          </div>
-        </div>
-
-        {/* Interests */}
-        <div className="form-section">
-          <label>Select your interests (minimum 3) *</label>
-          <div className="interests-grid">
-            {availableInterests.map(interest => (
-              <button
-                key={interest}
-                className={`interest-tag ${formData.interests.includes(interest) ? 'selected' : ''}`}
-                onClick={() => toggleInterest(interest)}
-                disabled={loading}
+        {/* Location Permission (MANDATORY) */}
+        <div className="form-section location-section">
+          <h3>📍 Ubicación (Requerida)</h3>
+          {location ? (
+            <div className="location-success">
+              <span className="check-icon">✓</span>
+              <div className="location-info">
+                <strong>Ubicación habilitada</strong>
+                <small>Lat: {location.latitude.toFixed(4)}, Lng: {location.longitude.toFixed(4)}</small>
+              </div>
+            </div>
+          ) : (
+            <div className="location-warning">
+              <p>Para usar Interest Local, <strong>necesitamos acceso a tu ubicación</strong>.</p>
+              <p>Esto permite que veas intereses cercanos en un radio de 1km.</p>
+              <button 
+                onClick={requestPermission}
+                disabled={locationLoading}
+                className="btn-enable-location"
               >
-                {interest}
+                {locationLoading ? 'Obteniendo ubicación...' : 'Habilitar Ubicación'}
               </button>
-            ))}
-          </div>
-          <small>{formData.interests.length} selected</small>
+              <small>Tu ubicación nunca será compartida públicamente.</small>
+            </div>
+          )}
         </div>
 
-        <div className="actions">
-          <button 
-            className="btn-primary"
-            onClick={handleComplete}
-            disabled={!formData.display_name || formData.interests.length < 3 || loading}
-          >
-            {loading ? 'Saving...' : 'Get Started'}
-          </button>
-          <button className="btn-skip" onClick={handleSkip} disabled={loading}>
-            Skip for now
-          </button>
-        </div>
+        {/* Only show form if location is enabled */}
+        {location && (
+          <>
+            {/* Basic Information */}
+            <div className="form-section">
+              <h3>📋 Información Básica</h3>
+              
+              <div className="form-group">
+                <label>Nombre Completo *</label>
+                <input
+                  type="text"
+                  name="display_name"
+                  placeholder="Tu nombre completo"
+                  value={formData.display_name}
+                  onChange={handleInputChange}
+                  maxLength="50"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Biografía</label>
+                <textarea
+                  name="bio"
+                  placeholder="Cuéntanos sobre ti (máx. 200 caracteres)"
+                  value={formData.bio}
+                  onChange={handleInputChange}
+                  maxLength="200"
+                  disabled={loading}
+                  rows="3"
+                />
+                <small>{formData.bio.length}/200</small>
+              </div>
+
+              <div className="form-group">
+                <label>Foto de Perfil</label>
+                <input
+                  type="url"
+                  name="avatar_url"
+                  placeholder="https://ejemplo.com/foto.jpg"
+                  value={formData.avatar_url}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            {/* Contact */}
+            <div className="form-section">
+              <h3>📞 Contacto</h3>
+              
+              <div className="form-group">
+                <label>Teléfono</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="+54 911 2345 6789"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="tu@email.com"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Dirección</label>
+                <input
+                  type="text"
+                  name="address"
+                  placeholder="Tu zona (ciudad, barrio)"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            {/* Social Media */}
+            <div className="form-section">
+              <h3>🌐 Redes Sociales</h3>
+              
+              <div className="form-group">
+                <label>Instagram</label>
+                <input
+                  type="text"
+                  name="instagram"
+                  placeholder="@tu_usuario"
+                  value={formData.instagram}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Twitter</label>
+                <input
+                  type="text"
+                  name="twitter"
+                  placeholder="@tu_usuario"
+                  value={formData.twitter}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Facebook</label>
+                <input
+                  type="text"
+                  name="facebook"
+                  placeholder="facebook.com/tu_usuario"
+                  value={formData.facebook}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            {/* Interests */}
+            <div className="form-section">
+              <label>Selecciona tus intereses (mínimo 3) *</label>
+              <div className="interests-grid">
+                {availableInterests.map(interest => (
+                  <button
+                    key={interest}
+                    className={`interest-tag ${formData.interests.includes(interest) ? 'selected' : ''}`}
+                    onClick={() => toggleInterest(interest)}
+                    disabled={loading}
+                  >
+                    {interest}
+                  </button>
+                ))}
+              </div>
+              <small>{formData.interests.length} seleccionados</small>
+            </div>
+
+            <div className="actions">
+              <button 
+                className="btn-primary"
+                onClick={handleComplete}
+                disabled={!formData.display_name || formData.interests.length < 3 || loading}
+              >
+                {loading ? 'Guardando...' : 'Comenzar'}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

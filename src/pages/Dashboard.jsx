@@ -56,7 +56,7 @@ export default function Dashboard() {
       </aside>
 
       <main className="main-content">
-        <h1>Bienvenido a GeoInterest</h1>
+        <h1>Bienvenido a Interest Local</h1>
         <p>Selecciona un interés de la barra lateral para ver los foros locales.</p>
         
         {location && (

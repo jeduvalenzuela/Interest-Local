@@ -81,6 +81,18 @@ function geointerest_register_endpoints() {
         'callback' => 'geointerest_get_interests',
         'permission_callback' => '__return_true'
     ]);
+
+    // Nearby interests endpoint (1km radius) - NUEVO
+    register_rest_route($namespace, '/interests/nearby', [
+        'methods' => 'GET',
+        'callback' => 'geointerest_get_nearby_interests',
+        'permission_callback' => '__return_true',
+        'args' => [
+            'latitude' => ['required' => true, 'type' => 'number'],
+            'longitude' => ['required' => true, 'type' => 'number'],
+            'radius' => ['required' => false, 'type' => 'number', 'default' => 1000], // 1km default
+        ]
+    ]);
     
     // Matching endpoint
     register_rest_route($namespace, '/matches', [
@@ -512,6 +524,70 @@ function geointerest_get_interests($request) {
     ");
     
     return $interests;
+}
+
+// Get nearby interests with member count (1km radius) - NUEVO
+function geointerest_get_nearby_interests($request) {
+    global $wpdb;
+    
+    $latitude = floatval($request->get_param('latitude'));
+    $longitude = floatval($request->get_param('longitude'));
+    $radius = intval($request->get_param('radius')) ?: 1000; // 1km default
+    
+    if (empty($latitude) || empty($longitude)) {
+        return new WP_Error('missing_location', 'Latitude and longitude are required', ['status' => 400]);
+    }
+    
+    // Use haversine formula to calculate distance
+    // and get nearby interests with member count
+    $query = $wpdb->prepare("
+        SELECT 
+            i.id,
+            i.name,
+            i.slug,
+            i.icon,
+            i.color,
+            COUNT(DISTINCT um.user_id) as member_count,
+            (
+                6371000 * ACOS(
+                    COS(RADIANS(%f)) * 
+                    COS(RADIANS(um.latitude)) * 
+                    COS(RADIANS(%f) - RADIANS(um.longitude)) + 
+                    SIN(RADIANS(%f)) * 
+                    SIN(RADIANS(um.latitude))
+                )
+            ) as distance
+        FROM {$wpdb->prefix}interests i
+        LEFT JOIN {$wpdb->prefix}user_interests ui ON i.id = ui.interest_id
+        LEFT JOIN {$wpdb->prefix}user_meta um ON ui.user_id = um.user_id 
+            AND um.meta_key IN ('latitude', 'longitude')
+        WHERE (
+            6371000 * ACOS(
+                COS(RADIANS(%f)) * 
+                COS(RADIANS(um.latitude)) * 
+                COS(RADIANS(%f) - RADIANS(um.longitude)) + 
+                SIN(RADIANS(%f)) * 
+                SIN(RADIANS(um.latitude))
+            )
+        ) <= %d
+        OR um.latitude IS NULL
+        GROUP BY i.id
+        ORDER BY member_count DESC, i.name ASC
+    ", $latitude, $longitude, $latitude, $latitude, $longitude, $latitude, $radius);
+    
+    $nearby_interests = $wpdb->get_results($query);
+    
+    // If query fails, return all interests with 0 distance
+    if ($wpdb->last_error) {
+        $interests = $wpdb->get_results("
+            SELECT id, name, slug, icon, color, 0 as member_count, 0 as distance
+            FROM {$wpdb->prefix}interests
+            ORDER BY name ASC
+        ");
+        return $interests;
+    }
+    
+    return $nearby_interests ?: [];
 }
 
 // === MATCHING ENDPOINT ===
