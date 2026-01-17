@@ -1,9 +1,10 @@
-# 📍 GeoInterest - v1.0.2
-### High-Performance Hyper-Local Social Platform
 
-GeoInterest es una plataforma social **"One-Page"** diseñada para conectar usuarios en tiempo real basándose exclusivamente en su ubicación geográfica y afinidades compartidas. Utiliza una arquitectura **desacoplada y escalable** con **WordPress como Backend (Headless API)** y **React como Frontend (SPA)**.
+# 📍 GeoInterest - v1.1.0
+### Plataforma social hiperlocal con dashboard social
 
-**Estado:** ✅ MVP Funcional | **Última Actualización:** 14 de enero de 2026
+GeoInterest es una plataforma social **SPA** para conectar usuarios en tiempo real según ubicación e intereses, usando **WordPress (Headless API)** y **React**.
+
+**Estado:** ✅ Producción | **Última Actualización:** 15 de enero de 2026
 
 ---
 
@@ -96,46 +97,10 @@ Los archivos compilados se generarán en la carpeta `build/`.
 
 ---
 
-## 📚 Estructura del Proyecto
 
-### Backend (PHP)
+## 📚 Estructura del Proyecto (v1.1.0)
 
-```
-geointerest-theme/
-├── functions.php              # Hook principal, enqueue scripts
-├── index.php                  # Plantilla raíz (SPA)
-├── style.css                  # Metadatos del tema
-├── inc/
-│   ├── database.php          # Crear tablas + seed inicial
-│   ├── jwt-auth.php          # Clase GeoInterest_JWT
-│   ├── api-endpoints.php     # Rutas REST API
-│   ├── matching-engine.php   # Lógica de geomaching
-│   └── helpers.php           # Funciones auxiliares
-└── build/                    # Output compilado de React
-    ├── index.js              # App React empaquetada
-    └── index.css             # Estilos compilados
-```
-
-### Frontend (React + Vite)
-
-```
-src/
-├── main.jsx                   # Entry point
-├── App.jsx                    # Router y providers
-├── App.css                    # Estilos globales
-├── context/
-│   ├── AuthContext.jsx       # Estado de autenticación
-│   └── LocationContext.jsx   # Geolocalización del usuario
-├── pages/
-│   ├── Login.jsx             # Pantalla de inicio de sesión
-│   ├── Register.jsx          # Pantalla de registro
-│   ├── Dashboard.jsx         # Dashboard con intereses
-│   ├── InterestSelection.jsx # Seleccionar/editar intereses
-│   ├── ForumView.jsx         # Foro por interés local
-│   └── Dashboard.css         # Estilos del dashboard
-└── utils/
-    └── api.js                # Cliente HTTP (APIClient)
-```
+Ver archivo `PROJECT_STRUCTURE_v1.1.0.md` para la estructura completa y actualizada.
 
 ---
 
@@ -429,33 +394,10 @@ npm run clean            # Limpiar carpeta build/ (si existe)
 
 ---
 
-## 📋 Registro de Cambios (v1.0.2)
 
-### ✅ Características Implementadas
-- [x] Autenticación JWT con expiración
-- [x] Geolocalización en tiempo real
-- [x] Selección y gestión de intereses
-- [x] Matching de usuarios cercanos
-- [x] Foros locales por interés
-- [x] CORS habilitado
-- [x] Build de producción funcional
+## 📋 Registro de Cambios
 
-### 🐛 Bugs Corregidos (v1.0.2)
-- [x] Validación de coordenadas (aceptar 0.0)
-- [x] Versionado de assets (usar constante)
-- [x] Login.jsx completamente reescrito
-- [x] Compatibilidad API front-back verificada
-
-### 📌 Próximas Mejoras (v1.1.0)
-- [ ] Notificaciones en tiempo real (WebSocket)
-- [ ] Chat privado entre usuarios
-- [ ] Carga de fotos de perfil
-- [ ] Ratings/Reviews de usuarios
-- [ ] Sistema de moderation
-- [ ] Búsqueda avanzada de usuarios/eventos
-- [ ] Mobile app (React Native)
-
----
+Ver archivo `CHANGELOG_v1.1.0.md` para el historial de cambios y roadmap.
 
 ## 📞 Soporte y Contribución
 
@@ -464,14 +406,10 @@ Para reportar bugs o proponer features:
 2. Incluir versión de GeoInterest
 3. Pasos para reproducir
 
----
-
 ## 📄 Licencia
 
-Especificar licencia (MIT, etc.)
+MIT
 
----
-
-**Versión:** 1.0.2  
-**Última actualización:** 14 de enero de 2026  
-**Responsable:** Development Team
+**Versión:** 1.1.0  
+**Última actualización:** 15 de enero de 2026  
+**Responsable:** GeoInterest Team

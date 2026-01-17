@@ -25,14 +25,14 @@ const Onboarding = () => {
   const [availableCategories, setAvailableCategories] = useState([]);
 
 
-  // Cargar datos del usuario al montar el componente
+  // Load user data on component mount
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('geoi_user'));
     const token = localStorage.getItem('geoi_token');
     if (!user || !token) {
-      // Si no hay usuario, redirigir o mostrar error
-      setError('No se encontró información de usuario. Por favor, inicia sesión de nuevo.');
-      // navigate('/login'); // Descomenta si quieres redirigir automáticamente
+      // If no user, redirect or show error
+      setError('No user information found. Please log in again.');
+      // navigate('/login'); // Uncomment if you want to redirect automatically
       return;
     }
     apiClient.setToken(token);
@@ -63,7 +63,7 @@ const Onboarding = () => {
     }
   }, [location, locationLoading]);
 
-  // Cargar categorías de intereses desde la API nueva
+  // Load interest categories from the new API
   useEffect(() => {
     apiClient.get('/interest-categories').then(data => {
       if (Array.isArray(data)) {
@@ -99,7 +99,7 @@ const Onboarding = () => {
   const handleComplete = async () => {
     // ✅ Verificar ubicación obligatoria
     if (!location) {
-      setError('Debe habilitar la ubicación para continuar. Por favor, permite el acceso a tu ubicación.');
+      setError('You must enable location to continue. Please allow access to your location.');
       return;
     }
 
@@ -107,18 +107,18 @@ const Onboarding = () => {
     const token = localStorage.getItem('geoi_token');
 
     if (!user || !token) {
-      setError('No se encontró información de usuario. Por favor, inicia sesión de nuevo.');
-      // navigate('/login'); // Descomenta si quieres redirigir automáticamente
+      setError('No user information found. Please log in again.');
+      // navigate('/login'); // Uncomment if you want to redirect automatically
       return;
     }
 
     if (!formData.display_name) {
-      setError('El nombre es requerido');
+      setError('Name is required');
       return;
     }
 
     if (formData.interests.length < 3) {
-      setError('Selecciona al menos 3 intereses');
+      setError('Select at least 3 interests');
       return;
     }
 
@@ -126,7 +126,6 @@ const Onboarding = () => {
     setError('');
 
     try {
-      // ✅ Use apiClient which already has the correct URL
       apiClient.setToken(token);
       const data = await apiClient.post('/user/profile', {
         user_id: user.id,
@@ -136,16 +135,22 @@ const Onboarding = () => {
       });
 
       if (data && data.success) {
-        // Update local data
-        user.display_name = formData.display_name;
-        localStorage.setItem('geoi_user', JSON.stringify(user));
+        // Refrescar usuario actualizado desde la API y actualizar contexto
+        const updatedUser = await apiClient.get(`/users/${user.id}`);
+        if (updatedUser && updatedUser.id) {
+          localStorage.setItem('geoi_user', JSON.stringify(updatedUser));
+          // Actualizar contexto si existe window.setAuthData global (React context)
+          if (window.setAuthData) {
+            window.setAuthData(token, updatedUser);
+          }
+        }
         navigate('/dashboard');
       } else {
-        setError(data?.message || 'Error guardando el perfil');
+        setError(data?.message || 'Error saving profile');
       }
     } catch (err) {
       console.error('Error saving profile:', err);
-      setError(err.message || 'Error de conexión');
+      setError(err.message || 'Connection error');
     } finally {
       setLoading(false);
     }
@@ -154,34 +159,34 @@ const Onboarding = () => {
   return (
     <div className="onboarding">
       <div className="onboarding-card">
-        <h2>¡Bienvenido a Interest Local! 🎉</h2>
-        <p className="subtitle">Completa tu perfil para conectar con tu comunidad local</p>
+        <h2>Welcome to Interest Local! 🎉</h2>
+        <p className="subtitle">Complete your profile to connect with your local community</p>
 
         {error && <div className="error-message">{error}</div>}
 
         {/* Location Permission (MANDATORY) */}
         <div className="form-section location-section">
-          <h3>📍 Ubicación (Requerida)</h3>
+          <h3>📍 Location (Required)</h3>
           {location ? (
             <div className="location-success">
               <span className="check-icon">✓</span>
               <div className="location-info">
-                <strong>Ubicación habilitada</strong>
+                <strong>Location enabled</strong>
                 <small>Lat: {location.latitude.toFixed(4)}, Lng: {location.longitude.toFixed(4)}</small>
               </div>
             </div>
           ) : (
             <div className="location-warning">
-              <p>Para usar Interest Local, <strong>necesitamos acceso a tu ubicación</strong>.</p>
-              <p>Esto permite que veas intereses cercanos en un radio de 1km.</p>
+              <p>To use Interest Local, <strong>we need access to your location</strong>.</p>
+              <p>This allows you to see nearby interests within a 1km radius.</p>
               <button 
                 onClick={requestPermission}
                 disabled={locationLoading}
                 className="btn-enable-location"
               >
-                {locationLoading ? 'Obteniendo ubicación...' : 'Habilitar Ubicación'}
+                {locationLoading ? 'Getting location...' : 'Enable Location'}
               </button>
-              <small>Tu ubicación nunca será compartida públicamente.</small>
+              <small>Your location will never be shared publicly.</small>
             </div>
           )}
         </div>
@@ -191,14 +196,14 @@ const Onboarding = () => {
           <>
             {/* Basic Information */}
             <div className="form-section">
-              <h3>📋 Información Básica</h3>
+              <h3>📋 Basic Information</h3>
               
               <div className="form-group">
-                <label>Nombre Completo *</label>
+                <label>Full Name *</label>
                 <input
                   type="text"
                   name="display_name"
-                  placeholder="Tu nombre completo"
+                  placeholder="Your full name"
                   value={formData.display_name}
                   onChange={handleInputChange}
                   maxLength="50"
@@ -207,10 +212,10 @@ const Onboarding = () => {
               </div>
 
               <div className="form-group">
-                <label>Biografía</label>
+                <label>Bio</label>
                 <textarea
                   name="bio"
-                  placeholder="Cuéntanos sobre ti (máx. 200 caracteres)"
+                  placeholder="Tell us about yourself (max 200 characters)"
                   value={formData.bio}
                   onChange={handleInputChange}
                   maxLength="200"
@@ -221,11 +226,11 @@ const Onboarding = () => {
               </div>
 
               <div className="form-group">
-                <label>Foto de Perfil</label>
+                <label>Profile Photo</label>
                 <input
                   type="url"
                   name="avatar_url"
-                  placeholder="https://ejemplo.com/foto.jpg"
+                  placeholder="https://example.com/photo.jpg"
                   value={formData.avatar_url}
                   onChange={handleInputChange}
                   disabled={loading}
@@ -235,14 +240,14 @@ const Onboarding = () => {
 
             {/* Contact */}
             <div className="form-section">
-              <h3>📞 Contacto</h3>
+              <h3>📞 Contact</h3>
               
               <div className="form-group">
-                <label>Teléfono</label>
+                <label>Phone</label>
                 <input
                   type="tel"
                   name="phone"
-                  placeholder="+54 911 2345 6789"
+                  placeholder="+1 555 123 4567"
                   value={formData.phone}
                   onChange={handleInputChange}
                   disabled={loading}
@@ -254,7 +259,7 @@ const Onboarding = () => {
                 <input
                   type="email"
                   name="email"
-                  placeholder="tu@email.com"
+                  placeholder="your@email.com"
                   value={formData.email}
                   onChange={handleInputChange}
                   disabled={loading}
@@ -262,11 +267,11 @@ const Onboarding = () => {
               </div>
 
               <div className="form-group">
-                <label>Dirección</label>
+                <label>Address</label>
                 <input
                   type="text"
                   name="address"
-                  placeholder="Tu zona (ciudad, barrio)"
+                  placeholder="Your area (city, neighborhood)"
                   value={formData.address}
                   onChange={handleInputChange}
                   disabled={loading}
@@ -276,14 +281,14 @@ const Onboarding = () => {
 
             {/* Social Media */}
             <div className="form-section">
-              <h3>🌐 Redes Sociales</h3>
+              <h3>🌐 Social Media</h3>
               
               <div className="form-group">
                 <label>Instagram</label>
                 <input
                   type="text"
                   name="instagram"
-                  placeholder="@tu_usuario"
+                  placeholder="@your_username"
                   value={formData.instagram}
                   onChange={handleInputChange}
                   disabled={loading}
@@ -295,7 +300,7 @@ const Onboarding = () => {
                 <input
                   type="text"
                   name="twitter"
-                  placeholder="@tu_usuario"
+                  placeholder="@your_username"
                   value={formData.twitter}
                   onChange={handleInputChange}
                   disabled={loading}
@@ -307,7 +312,7 @@ const Onboarding = () => {
                 <input
                   type="text"
                   name="facebook"
-                  placeholder="facebook.com/tu_usuario"
+                  placeholder="facebook.com/your_username"
                   value={formData.facebook}
                   onChange={handleInputChange}
                   disabled={loading}
@@ -317,9 +322,9 @@ const Onboarding = () => {
 
             {/* Interests */}
             <div className="form-section">
-              <label>Selecciona tus intereses/categorías (mínimo 3) *</label>
+              <label>Select your interests/categories (minimum 3) *</label>
               <div className="interests-grid">
-                {availableCategories.length === 0 && <span>No hay categorías disponibles.</span>}
+                {availableCategories.length === 0 && <span>No categories available.</span>}
                 {availableCategories.map(category => (
                   <button
                     key={category}
@@ -331,7 +336,7 @@ const Onboarding = () => {
                   </button>
                 ))}
               </div>
-              <small>{formData.interests.length} seleccionados</small>
+              <small>{formData.interests.length} selected</small>
             </div>
 
             <div className="actions">
@@ -340,7 +345,7 @@ const Onboarding = () => {
                 onClick={handleComplete}
                 disabled={!formData.display_name || formData.interests.length < 3 || loading}
               >
-                {loading ? 'Guardando...' : 'Comenzar'}
+                {loading ? 'Saving...' : 'Get Started'}
               </button>
             </div>
           </>

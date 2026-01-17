@@ -1,3 +1,7 @@
+# Para detalles técnicos y de desarrollo actualizados, consulta también:
+# - `PROJECT_STRUCTURE_v1.1.0.md`
+# - `CHANGELOG_v1.1.0.md`
+# - `IMPLEMENTATION_SUMMARY_v1.1.0.md`
 # 👨‍💻 Guía para Futuros Desarrolladores - GeoInterest v1.0.2
 
 Este documento contiene instrucciones detalladas para trabajar en nuevas features y mejoras del proyecto GeoInterest.
@@ -235,18 +239,10 @@ Editar `src/App.jsx`:
 
 ### Paso 4: Testing
 
-#### 4.1 Testing Manual
-```bash
-# Frontend
-npm run dev
-# Abrir http://localhost:5173
 
-# Backend (con Postman/curl)
-curl -X POST http://localhost/wp-json/geointerest/v1/nueva-ruta \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"param": "valor"}'
-```
+#### 4.1 Testing Manual
+
+Consulta los endpoints y flujos actuales en `CHANGELOG_v1.1.0.md` y `PROJECT_STRUCTURE_v1.1.0.md` para pruebas manuales y automatizadas.
 
 #### 4.2 Testing de BD
 ```sql

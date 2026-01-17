@@ -1,3 +1,7 @@
+# Para detalles técnicos y de cambios actualizados, consulta también:
+# - `PROJECT_STRUCTURE_v1.1.0.md`
+# - `CHANGELOG_v1.1.0.md`
+# - `IMPLEMENTATION_SUMMARY_v1.1.0.md`
 # 🔧 Guía de Integración - NewDashboard v1.1.0
 
 ## Resumen de Cambios

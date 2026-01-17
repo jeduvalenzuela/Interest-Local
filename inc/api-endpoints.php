@@ -498,9 +498,21 @@ function geointerest_update_profile($request) {
             update_user_meta($user_id, 'facebook', $facebook);
         }
 
-        // Save interests
+        // Guardar intereses por nombre y por ID (compatibilidad frontend)
         if (is_array($interests) && !empty($interests)) {
+            // Guardar nombres
             update_user_meta($user_id, 'user_interests', $interests);
+            // Buscar IDs de los intereses por nombre
+            global $wpdb;
+            $placeholders = implode(',', array_fill(0, count($interests), '%s'));
+            $query = $wpdb->prepare(
+                "SELECT id FROM {$wpdb->prefix}interests WHERE name IN ($placeholders)",
+                ...$interests
+            );
+            $ids = $wpdb->get_col($query);
+            if (!empty($ids)) {
+                update_user_meta($user_id, 'interests', $ids);
+            }
         }
 
         return [
@@ -641,56 +653,82 @@ function geointerest_get_nearby_interests($request) {
         return new WP_Error('missing_location', 'Latitude and longitude are required', ['status' => 400]);
     }
     
-    // Use haversine formula to calculate distance
-    // and get nearby interests with member count
-    $query = $wpdb->prepare("
+    // Obtener intereses cercanos con categoría y participantes (con distancia)
+    $interests_query = $wpdb->prepare("
         SELECT 
             i.id,
             i.name,
             i.slug,
             i.icon,
             i.color,
-            COUNT(DISTINCT um.user_id) as member_count,
-            (
-                6371000 * ACOS(
-                    COS(RADIANS(%f)) * 
-                    COS(RADIANS(um.latitude)) * 
-                    COS(RADIANS(%f) - RADIANS(um.longitude)) + 
-                    SIN(RADIANS(%f)) * 
-                    SIN(RADIANS(um.latitude))
-                )
-            ) as distance
+            i.category,
+            COUNT(DISTINCT ui.user_id) as member_count
         FROM {$wpdb->prefix}interests i
         LEFT JOIN {$wpdb->prefix}user_interests ui ON i.id = ui.interest_id
-        LEFT JOIN {$wpdb->prefix}user_meta um ON ui.user_id = um.user_id 
-            AND um.meta_key IN ('latitude', 'longitude')
+        LEFT JOIN {$wpdb->prefix}user_locations ul ON ui.user_id = ul.user_id
         WHERE (
-            6371000 * ACOS(
-                COS(RADIANS(%f)) * 
-                COS(RADIANS(um.latitude)) * 
-                COS(RADIANS(%f) - RADIANS(um.longitude)) + 
-                SIN(RADIANS(%f)) * 
-                SIN(RADIANS(um.latitude))
+            ul.latitude IS NULL OR (
+                6371 * 2 * ASIN(SQRT(
+                    POWER(SIN(RADIANS(%f - ul.latitude) / 2), 2) +
+                    COS(RADIANS(%f)) * COS(RADIANS(ul.latitude)) *
+                    POWER(SIN(RADIANS(%f - ul.longitude) / 2), 2)
+                )) <= %d
             )
-        ) <= %d
-        OR um.latitude IS NULL
+        )
         GROUP BY i.id
         ORDER BY member_count DESC, i.name ASC
-    ", $latitude, $longitude, $latitude, $latitude, $longitude, $latitude, $radius);
-    
-    $nearby_interests = $wpdb->get_results($query);
-    
-    // If query fails, return all interests with 0 distance
-    if ($wpdb->last_error) {
-        $interests = $wpdb->get_results("
-            SELECT id, name, slug, icon, color, 0 as member_count, 0 as distance
-            FROM {$wpdb->prefix}interests
-            ORDER BY name ASC
-        ");
-        return $interests;
+    ", $latitude, $latitude, $longitude, $radius/1000);
+
+    $interests = $wpdb->get_results($interests_query);
+
+    // Para cada interés, obtener participantes y calcular distancia
+    $result = [];
+    foreach ($interests as $interest) {
+        // Participantes con ubicación y distancia
+        $participants_query = $wpdb->prepare("
+            SELECT 
+                u.ID as user_id,
+                u.display_name,
+                ul.latitude,
+                ul.longitude,
+                (
+                    6371 * 2 * ASIN(SQRT(
+                        POWER(SIN(RADIANS(%f - ul.latitude) / 2), 2) +
+                        COS(RADIANS(%f)) * COS(RADIANS(ul.latitude)) *
+                        POWER(SIN(RADIANS(%f - ul.longitude) / 2), 2)
+                    ))
+                ) as distance_km
+            FROM {$wpdb->prefix}user_interests ui
+            INNER JOIN {$wpdb->users} u ON ui.user_id = u.ID
+            LEFT JOIN {$wpdb->prefix}user_locations ul ON ui.user_id = ul.user_id
+            WHERE ui.interest_id = %d
+        ", $latitude, $latitude, $longitude, $interest->id);
+
+        $participants = $wpdb->get_results($participants_query);
+        $participants_array = [];
+        foreach ($participants as $p) {
+            if ($p->latitude !== null && $p->longitude !== null) {
+                $participants_array[] = [
+                    'user_id' => intval($p->user_id),
+                    'display_name' => $p->display_name,
+                    'distance_km' => round(floatval($p->distance_km), 3)
+                ];
+            }
+        }
+
+        $result[] = [
+            'id' => intval($interest->id),
+            'name' => $interest->name,
+            'slug' => $interest->slug,
+            'icon' => $interest->icon,
+            'color' => $interest->color,
+            'category' => $interest->category,
+            'member_count' => intval($interest->member_count),
+            'participants' => $participants_array
+        ];
     }
-    
-    return $nearby_interests ?: [];
+
+    return $result;
 }
 
 // === MATCHING ENDPOINT ===
@@ -844,13 +882,19 @@ function geointerest_get_user_profile($request) {
     }
     
     global $wpdb;
-    
+
     // Obtener posts del usuario
     $posts = $wpdb->get_results($wpdb->prepare(
         "SELECT id, content, image_url, created_at FROM {$wpdb->prefix}user_posts WHERE user_id = %d ORDER BY created_at DESC",
         $user_id
     ));
-    
+
+    // Obtener intereses del usuario (por nombre)
+    $user_interests = get_user_meta($user_id, 'user_interests', true);
+    if (!is_array($user_interests)) {
+        $user_interests = [];
+    }
+
     return [
         'id' => $user->ID,
         'username' => $user->user_login,
@@ -858,6 +902,7 @@ function geointerest_get_user_profile($request) {
         'display_name' => $user->display_name ?: $user->user_login,
         'created_at' => $user->user_registered,
         'avatar_url' => get_avatar_url($user->ID),
+        'interests' => $user_interests,
         'posts' => $posts ?: []
     ];
 }

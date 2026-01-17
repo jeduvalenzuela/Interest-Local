@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) exit;
  * Theme Constants
  * ============================
  */
-define('GEOINTEREST_VERSION', '1.0.24');
+define('GEOINTEREST_VERSION', '1.0.34');
 define('GEOINTEREST_INC', get_template_directory() . '/inc/');
 
 /**

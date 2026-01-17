@@ -279,18 +279,14 @@ refetchInterval: 10000
 
 ---
 
-## 📚 Documentación Incluida
 
-Para usuarios finales:
-- **QUICK_START_v1.1.0.md** - Guía rápida
+## 📚 Documentación Vigente
 
-Para desarrolladores:
-- **CHANGELOG_v1.1.0.md** - Qué cambió
-- **INTEGRATION_GUIDE_v1.1.0.md** - Cómo integrar
-- **IMPLEMENTATION_SUMMARY_v1.1.0.md** - Resumen técnico
-- **PROJECT_STRUCTURE_v1.1.0.md** - Estructura del proyecto
-
----
+Consulta los siguientes archivos para información actualizada:
+- `CHANGELOG_v1.1.0.md` (cambios y roadmap)
+- `PROJECT_STRUCTURE_v1.1.0.md` (estructura actual)
+- `IMPLEMENTATION_SUMMARY_v1.1.0.md` (resumen técnico)
+- `QUICK_START_v1.1.0.md` (guía rápida)
 
 ## ✅ Checklist Final
 

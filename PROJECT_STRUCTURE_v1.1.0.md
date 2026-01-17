@@ -1,4 +1,9 @@
+
 # 📁 Estructura Final del Proyecto - v1.1.0
+
+Para detalles de cambios y resumen técnico, consulta:
+- `CHANGELOG_v1.1.0.md`
+- `IMPLEMENTATION_SUMMARY_v1.1.0.md`
 
 ```
 geointerest-theme/

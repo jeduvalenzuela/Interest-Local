@@ -47,6 +47,10 @@ export default function NearbyInterests() {
             radius: radius,
           })
           .then((res) => {
+            console.log('API /interests/nearby response:', res); // <-- Agrega esto
+            res.forEach((interest, idx) => {
+                console.log(`Interest[${idx}]:`, interest);
+            });
             const interests = Array.isArray(res) ? res : res.interests || [];
             return interests.sort((a, b) => (b.member_count || 0) - (a.member_count || 0));
           });
@@ -61,7 +65,18 @@ export default function NearbyInterests() {
   const userCreated = nearbyInterests.filter(i => i.creator_id === user?.id);
   // Forums categorized with onboarding interests AND with participants within 1km
   const userCategories = Array.isArray(user?.interests) ? user.interests : [];
-  const categorizedWithMembers = nearbyInterests.filter(i => userCategories.includes(i.category));
+
+  //const categorizedWithMembers = nearbyInterests.filter(i => userCategories.includes(i.category));
+  const categorizedWithMembers = nearbyInterests.filter(i =>
+    userCategories.includes(i.category) &&
+    Array.isArray(i.participants) &&
+    i.participants.some(p => typeof p.distance_km === 'number' && (p.distance_km * 1000) <= radius)
+  );
+  console.log('userCategories:', userCategories);
+  nearbyInterests.forEach(i => {
+    console.log('Interest:', i.name, 'Category:', i.category, 'Participants:', i.participants);
+  });
+  console.log('Filtered interests:', categorizedWithMembers);
 
   // If we don't have location, request it
   useEffect(() => {
@@ -143,6 +158,20 @@ export default function NearbyInterests() {
                     📍 {interest.distance ? `${(interest.distance / 1000).toFixed(2)}km` : '<1km'}
                   </p>
                   <span className="category-label">Category: {interest.category}</span>
+                  <div style={{ marginTop: 8 }}>
+                    <strong>Participants:</strong>
+                    {Array.isArray(interest.participants) && interest.participants.length > 0 ? (
+                      <ul style={{ margin: 0, paddingLeft: 16 }}>
+                        {interest.participants.map((p) => (
+                          <li key={p.user_id}>
+                            {p.display_name} — {p.distance_km} km
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span> No participants nearby</span>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="interest-members">

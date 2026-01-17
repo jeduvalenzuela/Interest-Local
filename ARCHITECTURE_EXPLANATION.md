@@ -1,3 +1,7 @@
+# Para detalles técnicos y de arquitectura actualizados, consulta también:
+# - `PROJECT_STRUCTURE_v1.1.0.md`
+# - `CHANGELOG_v1.1.0.md`
+# - `IMPLEMENTATION_SUMMARY_v1.1.0.md`
 # 🏗️ Arquitectura GeoInterest - Explicación Completa
 
 ## ¿Cómo está funcionando el sistema?
@@ -256,48 +260,6 @@ HMAC-SHA256(
 ```
 
 ---
-
-## 7. Tablas de Base de Datos
-
-### wp_user_posts (Posts de usuarios)
-```
-id      | user_id | content              | image_url | created_at
---------|---------|----------------------|-----------|------------------
-1       | 5       | "¡Hola GeoInterest!" | NULL      | 2026-01-15 10:30
-2       | 7       | "Post de María"      | http://.. | 2026-01-15 10:25
-3       | 5       | "Otro post de Juan"  | NULL      | 2026-01-15 10:20
-```
-
-### wp_user_tokens (Tokens JWT generados)
-```
-id | user_id | token_hash                          | expires_at         | created_at
----|---------|-------------------------------------|--------------------|------------------
-1  | 5       | a1b2c3d4e5f6...                    | 2026-01-22 10:00   | 2026-01-15 10:00
-2  | 7       | f1e2d3c4b5a6...                    | 2026-01-22 11:30   | 2026-01-15 11:30
-```
-
-### wp_users (Usuarios reales de WordPress)
-```
-ID | user_login  | user_email         | display_name
----|-------------|-------------------|---------------
-5  | juan_perez  | juan@example.com   | Juan Pérez
-7  | maria_garcia| maria@example.com  | María García
-```
-
----
-
-## 8. Endpoints de la API
-
-### Públicos (sin autenticación)
-```
-GET /users/latest?limit=10
-  ← Retorna últimos 10 usuarios
-
-GET /users/{id}
-  ← Retorna perfil de usuario + todos sus posts
-
-GET /posts/latest?limit=50
-  ← Retorna últimos 50 posts de todos
 
 GET /posts/user/{id}
   ← Retorna posts de un usuario específico

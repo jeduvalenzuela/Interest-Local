@@ -1,4 +1,10 @@
+
 # 📺 Vista Visual - Dashboard Social v1.1.0
+
+Para detalles visuales y técnicos actualizados, consulta:
+- `PROJECT_STRUCTURE_v1.1.0.md`
+- `CHANGELOG_v1.1.0.md`
+- `IMPLEMENTATION_SUMMARY_v1.1.0.md`
 
 ## Pantalla Principal: /dashboard
 

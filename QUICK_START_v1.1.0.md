@@ -229,8 +229,12 @@ curl http://localhost/wp-json/geointerest/v1/posts/latest
 
 ---
 
-**¿Necesitas ayuda?**  
-Revisa `CHANGELOG_v1.1.0.md` para más detalles sobre qué cambió.
+
+**¿Necesitas ayuda?**
+Consulta también:
+- `CHANGELOG_v1.1.0.md` (cambios y roadmap)
+- `PROJECT_STRUCTURE_v1.1.0.md` (estructura actual)
+- `IMPLEMENTATION_SUMMARY_v1.1.0.md` (resumen técnico)
 
 ---
 

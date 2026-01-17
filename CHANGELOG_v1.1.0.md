@@ -112,17 +112,10 @@ src/components/Dashboard/
 
 ---
 
+
 ## Próximas Mejoras Planeadas (v1.2.0)
 
-- [ ] Comentarios en posts
-- [ ] Like/Unlike de posts
-- [ ] Sistema de follow/unfollow
-- [ ] Notificaciones en tiempo real
-- [ ] Chat privado entre usuarios
-- [ ] Búsqueda de usuarios
-- [ ] Filtros en feed (por fecha, popularidad)
-
----
+Consulta los archivos `PROJECT_STRUCTURE_v1.1.0.md` y `IMPLEMENTATION_SUMMARY_v1.1.0.md` para detalles adicionales y roadmap actualizado.
 
 **Versión:** 1.1.0  
 **Fecha:** 15 de enero de 2026  

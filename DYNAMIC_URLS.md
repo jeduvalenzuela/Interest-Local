@@ -72,13 +72,10 @@ const basename = (parts.length > 0 && !parts[0].includes('.')) ? `/${parts[0]}` 
 window.location.href = `${basename}/auth`;
 ```
 
+
 ## Archivos Modificados
 
-✅ `src/utils/api.js` - Construcción dinámica de API_BASE
-✅ `src/App.jsx` - Basename dinámico para Router
-✅ `src/context/AuthContext.jsx` - Logout dinámico
-✅ `.env` - URL relativa
-✅ `.env.local` - Comentarios aclaratorios
+Consulta la estructura actualizada en `PROJECT_STRUCTURE_v1.1.0.md` para ver los archivos relevantes y su función.
 
 ## Ventajas
 

@@ -22,7 +22,18 @@ export default function AuthProvider({ children }) {
     localStorage.setItem('geoi_token', newToken);
     localStorage.setItem('geoi_user', JSON.stringify(newUser));
     apiClient.setToken(newToken);
+    // Exponer global para onboarding
+    if (typeof window !== 'undefined') {
+      window.setAuthData = setAuthData;
+    }
   };
+
+  // Exponer setAuthData en window al montar
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.setAuthData = setAuthData;
+    }
+  }, []);
 
   useEffect(() => {
     if (token) {
