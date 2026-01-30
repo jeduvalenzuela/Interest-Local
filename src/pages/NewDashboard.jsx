@@ -44,8 +44,8 @@ export default function NewDashboard() {
 
       <main className="dashboard-content">
         <div className="dashboard-header">
-          <h1>Nearby Interest 1km</h1>
-          <p>Below you will see interests with members within 1km of your location.</p>
+          <h1>Nearby Interest</h1>
+          <p>Below you will see interests with members near you..</p>
         </div>
         <div style={{ background: '#e0e0e0', borderRadius: '12px', padding: '1.5rem', minHeight: '400px' }}>
           <NearbyInterests />
